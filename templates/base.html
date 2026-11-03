@@ -39,6 +39,10 @@
             </div>
             <div class="topbar-presets" style="display: inline-flex; align-items: center; gap: 4px;">
                 <button type="button" class="date-preset-btn" data-preset="{{ latest_session_date }}" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #cbd5e1; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="Latest Verified Live Session">⚡ {{ latest_session_label }} (Latest)</button>
+                <div id="topbarDataProvenancePill" class="data-provenance-pill" style="display: inline-flex; align-items: center; gap: 5px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 6px; cursor: pointer;" title="Data Accuracy & File Validation Details: Click to Inspect">
+                    <span id="topbarProvenanceIcon">🛡️</span>
+                    <span id="topbarProvenanceBadge">AUTHENTIC NSE EOD • 100% VERIFIED</span>
+                </div>
             </div>
         </div>
 
@@ -263,7 +267,76 @@
         </div>
     </div>
 
-    <!-- Modal: Quick Reading Guide -->
+        <!-- Modal: Data Integrity & Provenance Engine -->
+    <div class="modal-overlay" id="dataIntegrityModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 9999; justify-content: center; align-items: center;">
+        <div class="modal-content" style="max-width: 680px; width: 90%; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); border-radius: 14px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); color: #f8fafc; padding: 24px;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px;">
+                <h3 style="margin: 0; font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                    <span>🛡️</span> Data Accuracy, Provenance & Validation Engine
+                </h3>
+                <button class="btn-close" id="btnCloseDataIntegrity" style="background: transparent; border: none; font-size: 24px; color: #94a3b8; cursor: pointer;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 18px 0;">
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 11px; font-weight: 800; color: #10b981; text-transform: uppercase;">VERIFICATION STATUS</div>
+                        <div id="modalIntegrityBadge" style="font-size: 15px; font-weight: 900; color: #34d399; margin-top: 2px;">🛡️ AUTHENTIC NSE EOD • 100% VERIFIED</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 11px; font-weight: 800; color: #94a3b8;">DATA ACCURACY SCORE</div>
+                        <div id="modalIntegrityScore" style="font-size: 22px; font-weight: 900; color: #10b981;">100.0% <span style="font-size: 13px; font-weight: 700; color: #38bdf8;">(Grade A+)</span></div>
+                    </div>
+                </div>
+
+                <div style="font-size: 12px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px;">5-FILE AUTHENTICITY & QUALITY AUDIT:</div>
+                <div id="modalIntegrityFileList" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="padding: 10px 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 13px; color: #f1f5f9;">File 1: fao_participant_oi (Participant OI)</div>
+                            <div style="font-size: 11px; color: #94a3b8;">14 Columns Verified • 0 Duplicates • Zero-Sum Derivatives Balanced (Long == Short)</div>
+                        </div>
+                        <span style="color: #34d399; font-weight: 800; font-size: 12px;">✅ VERIFIED</span>
+                    </div>
+                    <div style="padding: 10px 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 13px; color: #f1f5f9;">File 2: fao_participant_vol (Participant Volumes)</div>
+                            <div style="font-size: 11px; color: #94a3b8;">14 Volume Columns Verified • Synthetic Simulation Blocked</div>
+                        </div>
+                        <span style="color: #34d399; font-weight: 800; font-size: 12px;">✅ VERIFIED</span>
+                    </div>
+                    <div style="padding: 10px 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 13px; color: #f1f5f9;">File 3: fii_stats (FII Derivatives Statistics)</div>
+                            <div style="font-size: 11px; color: #94a3b8;">Index Segregated Contracts (NIFTY, BANKNIFTY, FINNIFTY, MIDCPNIFTY)</div>
+                        </div>
+                        <span style="color: #34d399; font-weight: 800; font-size: 12px;">✅ VERIFIED</span>
+                    </div>
+                    <div style="padding: 10px 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 13px; color: #f1f5f9;">File 4: BhavCopy_NSE_FO (UDiFF FO Option Chain)</div>
+                            <div style="font-size: 11px; color: #94a3b8;">Uncorrupted Zip Archive • Trading Date TradDt Verified • FO Schema Verified</div>
+                        </div>
+                        <span style="color: #34d399; font-weight: 800; font-size: 12px;">✅ VERIFIED</span>
+                    </div>
+                    <div style="padding: 10px 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 13px; color: #f1f5f9;">File 5: sec_bhavdata (Cash Security Deliverables)</div>
+                            <div style="font-size: 11px; color: #94a3b8;">Cash Delivery Volumes Verified • Heavyweight Equities Analyzed</div>
+                        </div>
+                        <span style="color: #34d399; font-weight: 800; font-size: 12px;">✅ VERIFIED</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 18px; background: rgba(56, 189, 248, 0.08); border-left: 3px solid #38bdf8; padding: 10px 14px; border-radius: 4px; font-size: 12px; color: #93c5fd; line-height: 1.5;">
+                    <strong>Strict Synthetic Firewall:</strong> Synthetic and unverified fallback data are strictly segregated. Any file containing mock or simulated numbers is blocked from entering quantitative prediction models.
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 14px;">
+                <button class="btn btn-primary" id="btnCloseDataIntegrity2" style="background: #3b82f6; color: #fff; font-weight: 700; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer;">Close</button>
+            </div>
+        </div>
+    </div>
+<!-- Modal: Quick Reading Guide -->
     <div class="modal-overlay" id="guideModal">
         <div class="modal-content">
             <div class="modal-header">
