@@ -287,6 +287,26 @@ def compute_retention_ratio(oi_data: dict, vol_data: dict) -> dict:
 
     return ratios
 
+def get_latest_session_date() -> str:
+    """Returns the latest available trading date in cache or nearest trading day."""
+    avail = get_available_cached_dates()
+    if avail:
+        return avail[-1]
+    dt = datetime.now()
+    while dt.weekday() >= 5:
+        dt -= timedelta(days=1)
+    return dt.strftime("%Y-%m-%d")
+
+
+def format_session_label(date_str: str) -> str:
+    """Converts 'YYYY-MM-DD' to short badge label like '02 Nov'."""
+    try:
+        dt = datetime.strptime(date_str, "%Y-%m-%d")
+        return dt.strftime("%d %b")
+    except Exception:
+        return date_str
+
+
 def get_available_cached_dates() -> list:
     """Returns sorted list of distinct available session dates (YYYY-MM-DD) from local cache."""
     dates = set()
