@@ -19,11 +19,11 @@
         <div class="part-header-right">
             <div class="date-control-card">
                 <span class="ctrl-tag">📅 TRADING DATE:</span>
-                <input type="date" id="mainDateInput" class="ctrl-date-input" value="2026-10-30" title="Click to change trading date">
+                <input type="date" id="mainDateInput" class="ctrl-date-input" value="{{ default_date or latest_session_date }}" title="Click to change trading date">
                 
                 <!-- Quick Date Presets -->
                 <div style="display: inline-flex; align-items: center; gap: 4px; margin: 0 4px;">
-                    <button type="button" class="btn btn-sm date-preset-btn" data-preset="2026-10-30" style="padding: 4px 8px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); color: #cbd5e1;" title="Latest Verified Live Session">⚡ 30 Oct (Latest)</button>
+                    <button type="button" class="btn btn-sm date-preset-btn" data-preset="{{ latest_session_date }}" style="padding: 4px 8px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); color: #cbd5e1;" title="Latest Verified Live Session">⚡ {{ latest_session_label }} (Latest)</button>
                 </div>
 
                 <span class="ctrl-sep">|</span>
@@ -47,7 +47,7 @@
     <div class="sub-header-bar">
         <div class="sub-bar-container">
             <div class="active-date-wrap">
-                <span class="active-date-indicator">Active Date: <strong id="activeDateDisplay">2026-10-30</strong></span>
+                <span class="active-date-indicator">Active Date: <strong id="activeDateDisplay">{{ latest_session_date }}</strong></span>
             </div>
 
             <div class="status-indicator-box" id="statusBox" style="display: none;">
