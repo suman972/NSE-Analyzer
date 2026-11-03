@@ -1,0 +1,261 @@
+{
+  "status": "success",
+  "timestamp": "2026-10-25T17:41:11.356345",
+  "spot": 22600.0,
+  "max_pain": 22700.0,
+  "daily_expected_move": 163.25,
+  "regime_detection": {
+    "regime_id": 0,
+    "regime_name": "Low-Vol Rangebound (Theta Harvest)",
+    "confidence_pct": 100.0,
+    "probabilities": {
+      "regime_0_rangebound": 100.0,
+      "regime_1_trending": 0.0,
+      "regime_2_shock": 0.0
+    },
+    "transition_inertia_pct": 72.0,
+    "stance": "Pinning & Delta-Neutral",
+    "best_strategy": "Iron Condor / Short Strangle",
+    "gex_character": "Positive GEX (+Gamma) Market Maker Volatility Sponge",
+    "vol_behavior": "Mean-reverting volatility crush around Max Pain",
+    "badge": "THETA HARVEST",
+    "color": "#10b981"
+  },
+  "directional_prediction": {
+    "primary_stance": "RANGEBOUND PINNING / THETA HARVEST",
+    "directional_bias": "Neutral",
+    "predicted_class": 1,
+    "win_probability_pct": 99.9,
+    "probabilities": {
+      "bearish_breakdown_pct": 0.0,
+      "rangebound_pinning_pct": 99.9,
+      "bullish_squeeze_pct": 0.1
+    },
+    "strike_action": "Pin between S1 Floor & R1 Wall, Sell Iron Condors / Strangles",
+    "badge_color": "#10b981",
+    "icon": "\u2696\ufe0f",
+    "model_backend": "LightGBM",
+    "feature_attributions": [
+      {
+        "feature": "Dealer GEX Exposure",
+        "value": 3.0,
+        "weight_pct": 45.0,
+        "direction": "PINNING",
+        "is_positive_driver": true
+      },
+      {
+        "feature": "WAS Centroid Drift",
+        "value": 0.72,
+        "weight_pct": -25.2,
+        "direction": "TREND DRIFT",
+        "is_positive_driver": false
+      },
+      {
+        "feature": "Max Pain Distance",
+        "value": -0.613,
+        "weight_pct": -21.4,
+        "direction": "TREND DRIFT",
+        "is_positive_driver": false
+      },
+      {
+        "feature": "Max Pain Gravity",
+        "value": 0.829,
+        "weight_pct": 16.4,
+        "direction": "PINNING",
+        "is_positive_driver": true
+      },
+      {
+        "feature": "FII Futures Ratio",
+        "value": 0.0,
+        "weight_pct": -10.0,
+        "direction": "TREND DRIFT",
+        "is_positive_driver": false
+      },
+      {
+        "feature": "Shannon OI Entropy",
+        "value": 1.04,
+        "weight_pct": -8.8,
+        "direction": "TREND DRIFT",
+        "is_positive_driver": false
+      },
+      {
+        "feature": "Put-Call Ratio (PCR)",
+        "value": 0.74,
+        "weight_pct": -5.2,
+        "direction": "TREND DRIFT",
+        "is_positive_driver": false
+      },
+      {
+        "feature": "Implied Vol Skew",
+        "value": 0.138,
+        "weight_pct": -0.8,
+        "direction": "TREND DRIFT",
+        "is_positive_driver": false
+      },
+      {
+        "feature": "Vanna Flow Index",
+        "value": -0.014,
+        "weight_pct": -0.3,
+        "direction": "TREND DRIFT",
+        "is_positive_driver": false
+      },
+      {
+        "feature": "FII Net Delta Exposure",
+        "value": 0.0,
+        "weight_pct": -0.0,
+        "direction": "TREND DRIFT",
+        "is_positive_driver": false
+      },
+      {
+        "feature": "Pro Writing Skew",
+        "value": 0.0,
+        "weight_pct": -0.0,
+        "direction": "TREND DRIFT",
+        "is_positive_driver": false
+      },
+      {
+        "feature": "Smart-Retail Delta Spread",
+        "value": 0.0,
+        "weight_pct": -0.0,
+        "direction": "TREND DRIFT",
+        "is_positive_driver": false
+      },
+      {
+        "feature": "Buildup Quality Ratio",
+        "value": 0.0,
+        "weight_pct": -0.0,
+        "direction": "TREND DRIFT",
+        "is_positive_driver": false
+      },
+      {
+        "feature": "PCR 1-Day Velocity",
+        "value": 0.0,
+        "weight_pct": -0.0,
+        "direction": "TREND DRIFT",
+        "is_positive_driver": false
+      },
+      {
+        "feature": "PCR 3-Day Velocity",
+        "value": 0.0,
+        "weight_pct": -0.0,
+        "direction": "TREND DRIFT",
+        "is_positive_driver": false
+      },
+      {
+        "feature": "Retail Trap Asymmetry",
+        "value": 0.0,
+        "weight_pct": -0.0,
+        "direction": "TREND DRIFT",
+        "is_positive_driver": false
+      }
+    ],
+    "institutional_narrative": "Model exhibits 99.9% Rangebound Pinning Conviction. Market displays textbook mean-reverting microstructure with Positive Dealer GEX (+Rs. +24250772.4 Cr) functioning as an institutional volatility sponge. Spot is tightly magnetically anchored near Max Pain with Shannon Entropy indicating a tight strike lock. Top quantitative drivers: Dealer GEX Exposure (+45.0%), Max Pain Gravity (+16.4%)."
+  },
+  "quantile_boundaries": {
+    "q05_floor": 22362.3,
+    "q50_median": 22600.0,
+    "q95_ceiling": 22822.0,
+    "corridor_width_pts": 459.7,
+    "recommended_sell_put_strike": 22350.0,
+    "recommended_sell_call_strike": 22850.0,
+    "confidence_level_pct": 90.0,
+    "advice": "Sell strikes outside corridor: <= 22350 PE / >= 22850 CE (90% Pop)"
+  },
+  "dealer_hedging": {
+    "net_gex_crores": 24250772.36,
+    "gamma_flip_strike": 21350.0,
+    "vanna_flow_index": -0.0138,
+    "charm_flow_index": -0.3459,
+    "speed_flow_index": 0.0592,
+    "gex_character": "POSITIVE GEX (+Gamma) VOLATILITY SPONGE: Market makers buy dips and sell rallies. Expect aggressive strike pinning around Max Pain; favors Iron Condors & Strangles.",
+    "pinning_gravity": 0.8289,
+    "breeden_litzenberger_mode": 21400.0,
+    "shannon_oi_entropy": 3.64,
+    "was_centroid_drift": 71.97,
+    "variance_risk_premium": 0.0166,
+    "term_structure_slope": 0.0041
+  },
+  "engineered_features": {
+    "fii_futures_ratio": 0.0,
+    "fii_net_delta_exposure": 0.0,
+    "pro_writing_skew": 0.0,
+    "smart_retail_spread": 0.0,
+    "buildup_quality_ratio": 0.0,
+    "fii_cash_futures_coherence": 0.0,
+    "pcr": 0.74,
+    "pcr_velocity_1d": 0.0,
+    "pcr_velocity_3d": 0.0,
+    "max_pain_distance": -0.6126,
+    "max_pain_gravity": 0.8289,
+    "strike_concentration_ratio": 0.8228,
+    "was_call_centroid": 23114.4,
+    "was_put_centroid": 22229.5,
+    "was_centroid_drift": 71.97,
+    "shannon_oi_entropy": 3.64,
+    "breeden_litzenberger_mode": 21400.0,
+    "iv_skew": 0.0138,
+    "smile_curvature": 0.0,
+    "term_structure_slope": 0.0041,
+    "variance_risk_premium": 0.0166,
+    "dealer_gex_crores": 24250772.36,
+    "gamma_flip_strike": 21350.0,
+    "vanna_flow_index": -0.0138,
+    "charm_flow_index": -0.3459,
+    "speed_flow_index": 0.0592,
+    "retail_trap_score": 0.0,
+    "retail_trap_asymmetry": 0.0,
+    "retail_put_trap_ratio": 0.0,
+    "retail_call_trap_ratio": 0.0,
+    "vix_divergence_signal": "Normal Inverse Volatility Correlation",
+    "spot": 22600.0,
+    "max_pain": 22700.0,
+    "daily_expected_move": 163.25,
+    "days_to_expiry": 4.0
+  },
+  "fractional_kelly": {
+    "fractional_kelly_pct": 24.92,
+    "recommended_allocation_pct": 24.9,
+    "full_kelly_pct": 99.68,
+    "sizing_verdict": "Deploy 24.9% of option selling margin (Quarter-Kelly Safe)",
+    "safety_factor": 0.25,
+    "edge_ratio": 449.55
+  },
+  "tail_risk_cvar": {
+    "confidence_level_pct": 99.9,
+    "tail_cvar_drop_pts": 1066.0,
+    "cvar_stop_level": 21534.0,
+    "expected_move_1sd": 316.6,
+    "cvar_warning": "Worst 0.1% Tail Risk: Spot drop beyond 21534.0 triggers mandatory hedge liquidation"
+  },
+  "executive_quant_view": {
+    "verdict": "RANGEBOUND PINNING / THETA HARVEST (99.9% Win Rate)",
+    "regime": "Low-Vol Rangebound (Theta Harvest) (100.0% Conf)",
+    "dealer_gex_stance": "Positive GEX Sponge",
+    "kelly_sizing": "Deploy 24.9% of option selling margin (Quarter-Kelly Safe)",
+    "recommended_strategy": "Iron Condor / Short Strangle",
+    "safe_strike_corridor": "Sell strikes outside corridor: <= 22350 PE / >= 22850 CE (90% Pop)"
+  },
+  "symbol": "NIFTY",
+  "date": "2026-10-23",
+  "selected_expiry": "2026-10-27",
+  "available_expiries": [
+    "2026-10-27",
+    "2026-11-03",
+    "2026-11-09",
+    "2026-11-17",
+    "2026-11-23",
+    "2026-12-01",
+    "2026-12-29",
+    "2027-03-30",
+    "2027-06-29",
+    "2027-09-28",
+    "2027-12-28",
+    "2028-06-27",
+    "2028-12-26",
+    "2029-06-26",
+    "2029-12-24",
+    "2030-06-25",
+    "2030-12-31",
+    "2031-06-24"
+  ]
+}
