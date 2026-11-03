@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Participant-Wise OI Analyzer (6 Instruments) | NSE Derivatives Intelligence{% endblock %}
+
+{% block content %}
+<div class="participant-page-container">
+    <!-- Top Date Control Center & Action Bar -->
+    <div class="part-page-header">
+        <div class="part-header-left">
+            <div class="part-title-box">
+                <span class="part-title-icon">👥</span>
+                <div>
+                    <h1 class="part-page-title">Participant-Wise OI Analyzer</h1>
+                    <p class="part-page-sub">Client • DII • FII • Pro Open Interest Breakdown across 6 Derivative Instruments</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="part-header-right">
+            <div class="date-control-card">
+                <span class="ctrl-tag">📅 TRADING DATE:</span>
+                <input type="date" id="mainDateInput" class="ctrl-date-input" value="2026-10-30" title="Click to change trading date">
+                
+                <!-- Quick Date Presets -->
+                <div style="display: inline-flex; align-items: center; gap: 4px; margin: 0 4px;">
+                    <button type="button" class="btn btn-sm date-preset-btn" data-preset="2026-10-30" style="padding: 4px 8px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); color: #cbd5e1;" title="Latest Verified Live Session">⚡ 30 Oct (Latest)</button>
+                </div>
+
+                <span class="ctrl-sep">|</span>
+                
+                <label for="mainDaysSelect" class="ctrl-tag">LOOKBACK:</label>
+                <select id="mainDaysSelect" class="ctrl-select" title="Choose number of previous trading days to compare">
+                    <option value="5" selected>5 Days</option>
+                    <option value="4">4 Days</option>
+                    <option value="3">3 Days</option>
+                    <option value="2">2 Days</option>
+                </select>
+
+                <button type="button" class="btn btn-fetch-primary" id="btnMainFetch" title="Auto-fetch data from NSE for this date">
+                    <span class="btn-icon">⚡</span> Fetch from NSE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Notification Bar -->
+    <div class="sub-header-bar">
+        <div class="sub-bar-container">
+            <div class="active-date-wrap">
+                <span class="active-date-indicator">Active Date: <strong id="activeDateDisplay">2026-10-30</strong></span>
+            </div>
+
+            <div class="status-indicator-box" id="statusBox" style="display: none;">
+                <span class="status-icon" id="statusIcon">🔄</span>
+                <span class="status-text" id="statusText">Ready</span>
+                <button type="button" class="btn-toggle-logs" id="btnToggleLogs">Logs ▼</button>
+            </div>
+        </div>
+
+        <!-- Collapsible Fetch Logs Drawer -->
+        <div class="fetch-logs-drawer" id="fetchLogsDrawer" style="display: none;">
+            <ul id="fetchLogsUl"></ul>
+        </div>
+    </div>
+
+    <!-- Next-Day Market Intelligence & Trap Forecast Banner -->
+    <section class="forecast-banner" id="forecastSection">
+        <div class="forecast-header">
+            <div class="forecast-title-wrap">
+                <span class="forecast-tag">NEXT-DAY MARKET OUTLOOK & SENTIMENT FORECAST</span>
+                <h2 class="forecast-verdict" id="forecastVerdict">Analyzing derivatives positions...</h2>
+            </div>
+            <div class="forecast-badge-box">
+                <span class="forecast-badge" id="forecastBadge">CALCULATING</span>
+                <div class="sentiment-meter">
+                    <div class="meter-bar">
+                        <div class="meter-fill" id="meterFill" style="width: 50%;"></div>
+                    </div>
+                    <div class="meter-labels">
+                        <span>Extreme Bearish (-100)</span>
+                        <span id="meterScore">Score: 0</span>
+                        <span>Extreme Bullish (+100)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trap Alert Box -->
+        <div class="trap-alert-box" id="trapAlertBox" style="display: none;">
+            <span class="alert-icon">⚠️</span>
+            <div class="alert-content">
+                <strong class="alert-title">PARTICIPANT TRAP DETECTED:</strong>
+                <span id="trapAlertText">Clients are heavily positioned in Puts while Smart Money is writing Puts and covering Calls. High probability of Short Squeeze.</span>
+            </div>
+        </div>
+
+        <!-- Strategy Grid -->
+        <div class="forecast-grid">
+            <div class="forecast-card action-card">
+                <div class="card-title">🎯 Next-Day Trading Gameplan</div>
+                <p class="card-desc" id="nextDayActionText">Loading actionable trading setup...</p>
+            </div>
+            <div class="forecast-card fii-card">
+                <div class="card-title">🏦 FII (Foreign Inst.) Stance</div>
+                <div class="card-stat" id="fiiActionStat">-</div>
+                <p class="card-desc" id="fiiActionDesc">-</p>
+            </div>
+            <div class="forecast-card pro-card">
+                <div class="card-title">🏢 Pro Desk (Prop Desks) Stance</div>
+                <div class="card-stat" id="proActionStat">-</div>
+                <p class="card-desc" id="proActionDesc">-</p>
+            </div>
+            <div class="forecast-card client-card">
+                <div class="card-title">👤 Clients (Retail) Stance</div>
+                <div class="card-stat" id="clientActionStat">-</div>
+                <p class="card-desc" id="clientActionDesc">-</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Workspace: 6 Instrument Tables in Strict Sequence & Side Panel -->
+    <div class="dashboard-layout">
+        <!-- Left & Center: 6 Instrument Breakdown Tables in Exact Sequence -->
+        <div class="instruments-container" id="instrumentsContainer">
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Processing Participant-wise Open Interest data...</p>
+            </div>
+        </div>
+
+        <!-- Right Column: Participant Summary & Rules Panel -->
+        <div class="side-panel">
+            <!-- Summary of Positions Bought / Sold Today in Exact Sequence -->
+            <div class="panel-box positions-summary-box">
+                <div class="panel-header">
+                    <h3>Positions Bought / Sold Today</h3>
+                    <span class="panel-sub">Net activity by participant</span>
+                </div>
+
+                <div class="participant-cards-wrap" id="participantSummaryWrap">
+                    <!-- Filled dynamically -->
+                </div>
+            </div>
+
+            <!-- 4 Golden Trading Rules -->
+            <div class="panel-box rules-box" id="fourGoldenRulesBox">
+                <div class="panel-header rules-header">
+                    <h3>🛡️ 4 Golden Trading Rules</h3>
+                    <span class="badge-rules">Strict Discipline</span>
+                </div>
+                <ul class="rules-list">
+                    <li>
+                        <span class="rule-num">1</span>
+                        <div><strong>Keep SL in System & Trail:</strong> Never trade naked without predefined stop loss in order book.</div>
+                    </li>
+                    <li>
+                        <span class="rule-num">2</span>
+                        <div><strong>World Market Trend Alignment:</strong> Global cues (GIFT Nifty, US markets) should not conflict with direction.</div>
+                    </li>
+                    <li>
+                        <span class="rule-num">3</span>
+                        <div><strong>Watch Impacting News:</strong> RBI/Fed announcements or geopolitical news can trigger sudden gamma shocks.</div>
+                    </li>
+                    <li>
+                        <span class="rule-num">4</span>
+                        <div><strong>Price Action Confirmation:</strong> Trade only when open interest bias confirms on 5m/15m chart levels.</div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Quick Reading Guide -->
+            <div class="panel-box guide-box">
+                <div class="panel-header">
+                    <h3>📖 Quick Reading Guide</h3>
+                </div>
+                <div class="guide-content">
+                    <div class="guide-item">
+                        <span class="color-dot green"></span>
+                        <span><strong>Added Longs / Closed Shorts:</strong> Bullish institutional activity</span>
+                    </div>
+                    <div class="guide-item">
+                        <span class="color-dot red"></span>
+                        <span><strong>Closed Longs / Added Shorts:</strong> Bearish institutional activity</span>
+                    </div>
+                    <div class="guide-item">
+                        <span class="color-dot green"></span>
+                        <span><strong>Bought Net:</strong> Net contract accumulation</span>
+                    </div>
+                    <div class="guide-item">
+                        <span class="color-dot red"></span>
+                        <span><strong>Sold Net:</strong> Net contract distribution</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
