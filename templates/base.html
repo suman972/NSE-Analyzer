@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>{% block title %}NSE Derivatives Intelligence | FII, DII, Pro & Client Open Interest{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css?v={{ v }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme" data-page="{{ active_page }}">
+    <!-- YouTube-style Top Navbar -->
+    <header class="yt-topbar">
+        <div class="yt-topbar-left">
+            <button class="yt-hamburger-btn" id="btnSidebarToggle" title="Toggle Navigation Menu (☰)" aria-label="Toggle navigation">
+                <span>☰</span>
+            </button>
+            <a href="/" class="yt-brand" title="NSE Derivatives Intelligence Pro">
+                <span class="yt-brand-icon">📊</span>
+                <span class="yt-brand-text">NSE Derivatives</span>
+                <sup class="yt-brand-country">IN</sup>
+            </a>
+        </div>
+
+        <div class="yt-topbar-center" style="display: flex; align-items: center; gap: 8px;">
+            <div class="yt-date-chip" id="topbarDateChip" title="Click to Change Active Trading Session Date" style="position: relative; cursor: pointer;">
+                <span class="chip-icon">📅</span>
+                <span class="chip-label">TRADING DATE:</span>
+                <strong id="topbarActiveDateDisplay">2026-10-30</strong>
+                <span class="chip-dot"></span>
+                <span class="chip-sync" id="topbarSyncStatus">NSE SYNCED</span>
+                <input type="date" id="topbarHiddenDateInput" title="Click to change date" style="position: absolute; opacity: 0; pointer-events: auto; width: 100%; height: 100%; top: 0; left: 0; cursor: pointer;">
+            </div>
+            <div class="topbar-presets" style="display: inline-flex; align-items: center; gap: 4px;">
+                <button type="button" class="date-preset-btn" data-preset="2026-10-30" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #cbd5e1; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="Latest Verified Live Session">30 Oct (Latest)</button>
+            </div>
+        </div>
+
+        <div class="yt-topbar-right">
+            <!-- Quick Actions -->
+            <button class="yt-top-action-btn" id="btnTopUpload" title="Upload your own daily PDF or CSV files">
+                <span class="act-icon">📁</span>
+                <span class="act-text">Upload</span>
+            </button>
+            <button class="yt-top-action-btn" id="btnTopPaste" title="Paste raw text or table data">
+                <span class="act-icon">📋</span>
+                <span class="act-text">Paste</span>
+            </button>
+
+            <!-- Number Format: Indian vs International -->
+            <div class="format-toggle" title="Toggle Indian format (1,29,508) vs International (129,508)">
+                <button class="toggle-btn active" id="btnFmtIn">IN</button>
+                <button class="toggle-btn" id="btnFmtIntl">INTL</button>
+            </div>
+
+            <!-- Theme Toggle: Light / Dark Mode -->
+            <button class="theme-toggle-btn" id="btnThemeToggle" title="Toggle Light / Dark Mode">
+                <span id="themeIcon">☀️</span>
+                <span id="themeLabel">Light</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- App Container with YouTube-Style Left Sidebar & Main Content -->
+    <div class="yt-app-body">
+        <!-- YouTube Left Sidebar -->
+        <aside class="yt-sidebar" id="ytSidebar" aria-label="Main Navigation">
+            <div class="yt-sidebar-scroll">
+                <!-- Section 1: Main Pages -->
+                <nav class="yt-nav-section" aria-label="Primary Pages">
+                    <a href="/" class="yt-nav-item {% if active_page == 'home' %}active{% endif %}" title="Home & Overview Dashboard">
+                        <span class="yt-nav-icon">🏠</span>
+                        <span class="yt-nav-label">Home</span>
+                    </a>
+                    <a href="/participant-oi" class="yt-nav-item {% if active_page == 'participant_oi' %}active{% endif %}" title="Participant-Wise OI Analyzer (6 Instruments Breakdown)">
+                        <span class="yt-nav-icon">👥</span>
+                        <span class="yt-nav-label">Participant-Wise OI</span>
+                        <span class="yt-nav-badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-left: auto;">6 INST</span>
+                    </a>
+                    <a href="/option-chain" class="yt-nav-item {% if active_page == 'option_chain' %}active{% endif %}" title="Proper 13-Column Option Chain (Calls CE | Strike | Puts PE)">
+                        <span class="yt-nav-icon">📊</span>
+                        <span class="yt-nav-label">Proper Option Chain</span>
+                    </a>
+                    <a href="/pipeline" class="yt-nav-item {% if active_page == 'pipeline' %}active{% endif %}" title="5-Data Quantitative Institutional Pipeline & Big Player Strike Creation">
+                        <span class="yt-nav-icon">⚡</span>
+                        <span class="yt-nav-label">5-Data Quant Pipeline</span>
+                        <span class="yt-nav-badge" style="background: rgba(168, 85, 247, 0.25); color: #c084fc; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-left: auto;">5 DATA</span>
+                    </a>
+                    <a href="/strike-intelligence" class="yt-nav-item {% if active_page == 'strike_intelligence' %}active{% endif %}" title="Big Player Strike Intelligence & Option Selling Cockpit">
+                        <span class="yt-nav-icon">👑</span>
+                        <span class="yt-nav-label">Big Player Strikes</span>
+                        <span class="yt-nav-badge" style="background: rgba(239, 68, 68, 0.2); color: #f87171; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-left: auto;">NEW</span>
+                    </a>
+                    <a href="/details-report" class="yt-nav-item {% if active_page == 'details_report' %}active{% endif %}" title="Details Report: Institutional Intelligence Briefing">
+                        <span class="yt-nav-icon">📑</span>
+                        <span class="yt-nav-label">Details Report</span>
+                    </a>
+                    <a href="/option-selling" class="yt-nav-item {% if active_page == 'option_selling' %}active{% endif %}" title="Option Selling Strategies: Greek & Probability Advisory">
+                        <span class="yt-nav-icon">🛡️</span>
+                        <span class="yt-nav-label">Option Selling</span>
+                        <span class="yt-nav-badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-left: auto;">PRO</span>
+                    </a>
+                </nav>
+
+                <div class="yt-sidebar-divider"></div>
+
+                <!-- Section 2: Analytics & Tools (YouTube Subscriptions style) -->
+                <div class="yt-sidebar-group">
+                    <div class="yt-sidebar-header">
+                        <span>Analytics & Tools</span>
+                        <span class="yt-header-chevron">›</span>
+                    </div>
+                    <nav class="yt-nav-section" aria-label="Tools">
+                        <button type="button" class="yt-nav-item yt-nav-btn" id="btnSideFetch" title="Auto-fetch data from NSE archives">
+                            <span class="yt-nav-icon">⚡</span>
+                            <span class="yt-nav-label">NSE Auto-Fetch</span>
+                        </button>
+                        <button type="button" class="yt-nav-item yt-nav-btn" id="btnSideUpload" title="Upload daily PDF or CSV files">
+                            <span class="yt-nav-icon">📁</span>
+                            <span class="yt-nav-label">Upload Files</span>
+                        </button>
+                        <button type="button" class="yt-nav-item yt-nav-btn" id="btnSidePaste" title="Paste raw tabular data">
+                            <span class="yt-nav-icon">📋</span>
+                            <span class="yt-nav-label">Paste Raw Data</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <div class="yt-sidebar-divider"></div>
+
+                <!-- Section 3: Discipline & Guidance (YouTube 'You' section style) -->
+                <div class="yt-sidebar-group">
+                    <div class="yt-sidebar-header">
+                        <span>Discipline & Rules</span>
+                        <span class="yt-header-chevron">›</span>
+                    </div>
+                    <nav class="yt-nav-section" aria-label="Rules and Guide">
+                        <button type="button" class="yt-nav-item yt-nav-btn" id="btnSideRules" title="4 Golden Rules of Trading">
+                            <span class="yt-nav-icon">🛡️</span>
+                            <span class="yt-nav-label">4 Golden Rules</span>
+                        </button>
+                        <button type="button" class="yt-nav-item yt-nav-btn" id="btnSideGuide" title="Reading Guide & Color Indicators">
+                            <span class="yt-nav-icon">📖</span>
+                            <span class="yt-nav-label">Reading Guide</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <div class="yt-sidebar-divider"></div>
+
+                <!-- Footer in Sidebar -->
+                <div class="yt-sidebar-footer">
+                    <p class="yt-footer-text">NSE Derivative Intelligence v3.2</p>
+                    <p class="yt-footer-sub">Smart Money vs Retail Flow</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Sidebar Backdrop for Mobile/Drawer Mode -->
+        <div class="yt-sidebar-backdrop" id="ytSidebarBackdrop"></div>
+
+        <!-- Main Content Area -->
+        <main class="yt-main-content" id="ytMainContent">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Global Modals: Upload, Paste, Samples, Rules, Guide -->
+    <!-- Modal: File Upload -->
+    <div class="modal-overlay" id="uploadModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📁 Upload Participant-Wise OI Files</h3>
+                <button class="btn-close" id="btnCloseUpload">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">
+                    Upload last <strong>1 to 5 days</strong> of daily NSE Participant Open Interest reports (<strong>PDF</strong> or <strong>CSV</strong>). 
+                    The analyzer will automatically parse dates, extract Client/DII/FII/Pro figures, compute day-over-day changes, and forecast next day sentiment.
+                </p>
+                <div class="drop-zone" id="dropZone">
+                    <span class="drop-icon">📤</span>
+                    <p class="drop-text">Drag & drop NSE <code>.pdf</code> or <code>.csv</code> files here, or <strong>browse files</strong></p>
+                    <input type="file" id="fileInput" multiple accept=".pdf,.csv,.txt,.tsv" style="display:none">
+                </div>
+                <div class="selected-files-list" id="selectedFilesList"></div>
+
+                <div class="quick-sample-tip">
+                    <span>💡 Don't have NSE PDFs on hand?</span>
+                    <button type="button" class="btn-link" id="btnLoadSamplesInsideModal">Click here to auto-load 5-day sample PDFs</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="btnCancelUpload">Cancel</button>
+                <button class="btn btn-primary" id="btnSubmitUpload" disabled>Analyze Uploaded Files</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Paste Text -->
+    <div class="modal-overlay" id="pasteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 Paste Raw NSE OI Data</h3>
+                <button class="btn-close" id="btnClosePaste">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">
+                    Paste raw tabular text, Excel copy-paste (tab-separated), or CSV lines:
+                </p>
+                <div class="form-group">
+                    <label for="pasteDate">Date (Optional):</label>
+                    <input type="date" id="pasteDate" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label for="pasteArea">Raw Text / Excel / CSV Data:</label>
+                    <textarea id="pasteArea" class="textarea-field" rows="8" placeholder="Client Type&#9;Future Index Long&#9;Future Index Short...&#10;Client&#9;490913&#9;300389...&#10;DII&#9;116664&#9;183714...&#10;FII&#9;183529&#9;333716...&#10;Pro&#9;104649&#9;77936..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="btnCancelPaste">Cancel</button>
+                <button class="btn btn-primary" id="btnSubmitPaste">Analyze Pasted Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: 4 Golden Rules Quick Reference -->
+    <div class="modal-overlay" id="rulesModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🛡️ 4 Golden Trading Rules of Institutional OI</h3>
+                <button class="btn-close" id="btnCloseRules">&times;</button>
+            </div>
+            <div class="modal-body">
+                <ul class="rules-list rules-list-modal">
+                    <li>
+                        <span class="rule-num">1</span>
+                        <div><strong>Keep SL in System & Trail:</strong> Never trade naked without predefined stop loss in order book. Protect capital before seeking profits.</div>
+                    </li>
+                    <li>
+                        <span class="rule-num">2</span>
+                        <div><strong>World Market Trend Alignment:</strong> Global cues (GIFT Nifty, US tech indices, crude) should not conflict with direction. Avoid fighting macroeconomic tides.</div>
+                    </li>
+                    <li>
+                        <span class="rule-num">3</span>
+                        <div><strong>Watch Impacting News:</strong> RBI/Fed announcements or geopolitical news can trigger sudden gamma shocks. Respect high-volatility event windows.</div>
+                    </li>
+                    <li>
+                        <span class="rule-num">4</span>
+                        <div><strong>Price Action Confirmation:</strong> Trade only when open interest bias confirms on 5m/15m chart levels. Open Interest indicates bias; Price Action triggers entries.</div>
+                    </li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="btnCloseRules2">Understood</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Quick Reading Guide -->
+    <div class="modal-overlay" id="guideModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📖 Quick Reading Guide & Institutional Logic</h3>
+                <button class="btn-close" id="btnCloseGuide">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="guide-content guide-modal-content">
+                    <div class="guide-item">
+                        <span class="color-dot green"></span>
+                        <span><strong>Added Longs / Closed Shorts:</strong> Bullish institutional activity (Long Buildup / Short Covering)</span>
+                    </div>
+                    <div class="guide-item">
+                        <span class="color-dot red"></span>
+                        <span><strong>Closed Longs / Added Shorts:</strong> Bearish institutional activity (Long Unwinding / Short Buildup)</span>
+                    </div>
+                    <div class="guide-item">
+                        <span class="color-dot green"></span>
+                        <span><strong>Bought Net:</strong> Net contract accumulation today</span>
+                    </div>
+                    <div class="guide-item">
+                        <span class="color-dot red"></span>
+                        <span><strong>Sold Net:</strong> Net contract distribution today</span>
+                    </div>
+                    <div class="guide-item">
+                        <span class="color-dot amber"></span>
+                        <span><strong>In-The-Money (ITM) Golden Tint:</strong> High intrinsic value contracts with real institutional conviction</span>
+                    </div>
+                    <div class="guide-item">
+                        <span class="color-dot purple"></span>
+                        <span><strong>Retail Trap Alert:</strong> When Retail Clients take massive one-sided positions opposite to FII & Pro desks</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="btnCloseGuide2">Got It</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js?v={{ v }}"></script>
+</body>
+</html>
