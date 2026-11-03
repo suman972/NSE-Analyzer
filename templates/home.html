@@ -59,11 +59,11 @@
                 <!-- Date Controls -->
                 <div class="home-date-hub-controls">
                     <span class="ctrl-tag" style="color: #cbd5e1; font-weight: 700;">ACTIVE SESSION:</span>
-                    <input type="date" id="homeMasterDateInput" class="ctrl-date-input" value="2026-10-30" title="Choose date to integrate all sections">
+                    <input type="date" id="homeMasterDateInput" class="ctrl-date-input" value="{{ default_date or latest_session_date }}" title="Choose date to integrate all sections">
                     
                     <!-- Quick Date Presets -->
                     <div style="display: inline-flex; align-items: center; gap: 6px;">
-                        <button type="button" class="btn btn-sm date-preset-btn" data-preset="2026-10-30" style="padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.1); color: #4ade80;" title="Latest Verified Live Session">⚡ 30 Oct (Latest)</button>
+                        <button type="button" class="btn btn-sm date-preset-btn" data-preset="{{ latest_session_date }}" style="padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.1); color: #4ade80;" title="Latest Verified Live Session">⚡ {{ latest_session_label }} (Latest)</button>
                     </div>
 
                     <span class="ctrl-sep" style="margin: 0 4px;">|</span>
@@ -86,7 +86,7 @@
             <div id="homeSyncStatusBox" class="home-sync-status-box">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span id="homeSyncStatusIcon" style="font-size: 15px;">🔄</span>
-                    <span id="homeSyncStatusText">Integrated across all sections. Active Date: <strong id="homeActiveDateText" style="color: #38bdf8;">2026-10-30</strong></span>
+                    <span id="homeSyncStatusText">Integrated across all sections. Active Date: <strong id="homeActiveDateText" style="color: #38bdf8;">{{ latest_session_date }}</strong></span>
                 </div>
                 <div class="home-sync-status-meta">
                     <span>⚡ Real-time multi-view synchronization active</span>
