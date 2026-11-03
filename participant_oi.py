@@ -15,6 +15,7 @@ Provides:
 - Long/Short ratios
 - Multi-day sequential delta change (Delta OI)
 - Smart Money vs Retail Skew
+- Strict Data Quality & Zero-Sum Derivatives Verification (Total Long == Total Short)
 """
 
 import os
@@ -25,6 +26,8 @@ import json
 import argparse
 import requests
 from datetime import datetime, timedelta
+
+from data_validator import validate_participant_oi_csv, ValidationResult
 
 CACHE_DIR = os.path.join(os.path.dirname(__file__), "cache")
 SAMPLE_DIR = os.path.join(os.path.dirname(__file__), "sample_files")
@@ -77,7 +80,7 @@ def clean_int(val) -> int:
 
 
 class ParticipantOIExtractor:
-    """Extractor for NSE File 1: Participant-Wise Open Interest."""
+    """Extractor for NSE File 1: Participant-Wise Open Interest with Strict Validation."""
 
     def __init__(self, cache_dir: str = CACHE_DIR):
         self.cache_dir = cache_dir
@@ -85,22 +88,18 @@ class ParticipantOIExtractor:
 
     def get_cache_path(self, date_str: str) -> str:
         """Returns path to cached participant OI CSV."""
-        # Accepts YYYY-MM-DD or DDMMYYYY
         clean_date = date_str.replace('-', '')
         if len(clean_date) == 8 and clean_date[:4].isdigit() and int(clean_date[:4]) > 1900:
-            # YYYYMMDD -> DDMMYYYY
             clean_date = f"{clean_date[6:8]}{clean_date[4:6]}{clean_date[:4]}"
         return os.path.join(self.cache_dir, f"fao_participant_oi_{clean_date}.csv")
 
-    def fetch_raw(self, date_str: str) -> str:
+    def fetch_raw(self, date_str: str) -> tuple:
         """
-        Retrieves raw CSV text for target date.
-        Order of resolution:
-        1. Local cache (fao_participant_oi_DDMMYYYY.csv)
-        2. Live NSE Archives HTTP download
-        3. Local sample_files / fallback generator
+        Retrieves raw CSV text for target date with source provenance.
+        Returns: (raw_content: str, source_type: str)
+        Sources: 'AUTHENTIC_NSE_CACHE', 'AUTHENTIC_NSE_LIVE', 'HISTORICAL_FALLBACK', 'UNAVAILABLE'
+        NO SILENT SYNTHETIC DATA IS GENERATED.
         """
-        # Parse date
         try:
             dt = datetime.strptime(date_str, "%Y-%m-%d")
         except ValueError:
@@ -116,69 +115,79 @@ class ParticipantOIExtractor:
             os.path.join(self.cache_dir, f"fao_participant_oi_{yyyymmdd}.csv")
         ]
 
-        # 1. Local Cache check
+        # 1. Local Cache check with validation
         for cp in cache_paths:
             if os.path.exists(cp) and os.path.getsize(cp) > 100:
                 with open(cp, "r", encoding="utf-8", errors="ignore") as f:
                     content = f.read()
                     if "Client" in content or "CLIENT" in content:
-                        return content
+                        return content, "AUTHENTIC_NSE_CACHE"
 
-        # 2. Live NSE Download
+        # 2. Live NSE Download with immediate validation before saving
         urls = [
             f"https://archives.nseindia.com/content/nsccl/fao_participant_oi_{ddmmyyyy}.csv",
             f"https://archives.nseindia.com/content/fo/fao_participant_oi_{ddmmyyyy}.csv"
         ]
         for url in urls:
             try:
-                resp = requests.get(url, headers=NSE_HEADERS, timeout=3.5)
+                resp = requests.get(url, headers=NSE_HEADERS, timeout=4.0)
                 if resp.status_code == 200 and len(resp.text) > 200 and ("Client" in resp.text or "CLIENT" in resp.text):
-                    for cp in cache_paths:
-                        try:
-                            with open(cp, "w", encoding="utf-8") as f:
-                                f.write(resp.text)
-                        except Exception:
-                            pass
-                    return resp.text
+                    # Validate before caching
+                    val, _ = validate_participant_oi_csv(resp.text, date_str, source="LIVE")
+                    if val.is_valid and val.is_authentic:
+                        for cp in cache_paths:
+                            try:
+                                with open(cp, "w", encoding="utf-8") as f:
+                                    f.write(resp.text)
+                            except Exception:
+                                pass
+                        return resp.text, "AUTHENTIC_NSE_LIVE"
             except Exception:
                 continue
 
-        # 3. Check sample_files directory
+        # 3. Check sample_files directory (for offline demo mode ONLY)
         sample_path = os.path.join(SAMPLE_DIR, f"fao_participant_oi_{ddmmyyyy}.csv")
         if os.path.exists(sample_path):
             with open(sample_path, "r", encoding="utf-8", errors="ignore") as f:
-                return f.read()
+                return f.read(), "SAMPLE_DEMO"
 
-        # 4. Fallback generator
-        try:
-            from generate_samples import generate_sample_data, create_csv_files
-            data_dict = generate_sample_data(dt)
-            create_csv_files(data_dict, self.cache_dir)
-            if os.path.exists(cache_path):
-                with open(cache_path, "r", encoding="utf-8") as f:
-                    return f.read()
-        except Exception:
-            pass
+        # 4. If requested date has no data, search nearest verified historical cache
+        from nse_fetcher import find_nearest_cached_date
+        nearest = find_nearest_cached_date(date_str)
+        if nearest and nearest != date_str:
+            near_clean = nearest.replace('-', '')
+            near_dt = datetime.strptime(nearest, "%Y-%m-%d")
+            near_ddmmyyyy = near_dt.strftime("%d%m%Y")
+            near_path = os.path.join(self.cache_dir, f"fao_participant_oi_{near_ddmmyyyy}.csv")
+            if os.path.exists(near_path) and os.path.getsize(near_path) > 100:
+                with open(near_path, "r", encoding="utf-8", errors="ignore") as f:
+                    return f.read(), "HISTORICAL_FALLBACK"
 
-        return ""
+        return "", "UNAVAILABLE"
 
-    def parse(self, csv_content: str, target_date_str: str = "") -> dict:
+    def parse(self, csv_content: str, target_date_str: str = "", source_hint: str = "CACHE") -> dict:
         """
-        Parses CSV string into a structured dictionary with all 4 participants + Total.
-        Calculates:
-        - index_futures_net, stock_futures_net
-        - index_calls_net, index_puts_net
-        - stock_calls_net, stock_puts_net
-        - smart_money_totals (FII + PRO)
+        Parses CSV string and applies strict validation, schema checks, and zero-sum verification.
+        Returns full participant intelligence dictionary with embedded validation report.
         """
         if not csv_content:
-            return {}
+            res_val = ValidationResult("PARTICIPANT_OI", target_date_str)
+            res_val.errors.append("Empty or missing CSV content.")
+            return {
+                'date': target_date_str,
+                'participants': {},
+                'smart_money': {},
+                'retail_trap': {},
+                'validation': res_val.to_dict(),
+                'is_authentic': False,
+                'is_valid': False,
+                'raw_lines_count': 0
+            }
+
+        # Run strict validation
+        val_res, validated_rows = validate_participant_oi_csv(csv_content, target_date_str, source=source_hint)
 
         lines = [line.strip() for line in csv_content.splitlines() if line.strip()]
-        if not lines:
-            return {}
-
-        # Locate header line
         header_idx = -1
         for idx, line in enumerate(lines[:10]):
             line_upper = line.upper()
@@ -189,12 +198,8 @@ class ParticipantOIExtractor:
         if header_idx == -1:
             header_idx = 0
 
-        # Read CSV with DictReader or standard reader
         rows = list(csv.reader(lines[header_idx:]))
-        if not rows:
-            return {}
-
-        headers = [h.strip() for h in rows[0]]
+        headers = [h.strip() for h in rows[0]] if rows else []
         col_map = {}
         for c_idx, col_name in enumerate(headers):
             norm = re.sub(r'[^A-Z0-9]', '', col_name.upper())
@@ -203,11 +208,7 @@ class ParticipantOIExtractor:
                 if raw_norm in norm or norm in raw_norm:
                     col_map[key] = c_idx
 
-        # If standard 15 columns without clean headers:
         if len(col_map) < 8 and len(headers) >= 15:
-            # Standard NSE order: Client Type (0), Future Index Long (1), Short (2), Future Stock Long (3), Short (4),
-            # Option Index Call Long (5), Put Long (6), Call Short (7), Put Short (8),
-            # Option Stock Call Long (9), Put Long (10), Call Short (11), Put Short (12), Total Long (13), Total Short (14)
             order = [
                 'future_index_long', 'future_index_short',
                 'future_stock_long', 'future_stock_short',
@@ -221,6 +222,7 @@ class ParticipantOIExtractor:
                 col_map[k] = idx_key + 1
 
         participants = {}
+        seen_types = set()
         for row in rows[1:]:
             if not row or len(row) < 2:
                 continue
@@ -231,8 +233,9 @@ class ParticipantOIExtractor:
                     matched_p = p_code
                     break
 
-            if not matched_p:
+            if not matched_p or matched_p in seen_types:
                 continue
+            seen_types.add(matched_p)
 
             def get_val(key):
                 idx = col_map.get(key)
@@ -258,7 +261,6 @@ class ParticipantOIExtractor:
                 'total_short': get_val('total_short_contracts'),
             }
 
-            # Net calculations
             p_data['index_futures_net'] = p_data['future_index_long'] - p_data['future_index_short']
             p_data['stock_futures_net'] = p_data['future_stock_long'] - p_data['future_stock_short']
             p_data['index_calls_net'] = p_data['option_index_call_long'] - p_data['option_index_call_short']
@@ -267,14 +269,12 @@ class ParticipantOIExtractor:
             p_data['stock_puts_net'] = p_data['option_stock_put_long'] - p_data['option_stock_put_short']
             p_data['total_net'] = p_data['total_long'] - p_data['total_short']
 
-            # Ratios
             p_data['index_call_long_short_ratio'] = round(p_data['option_index_call_long'] / max(1, p_data['option_index_call_short']), 2)
             p_data['index_put_long_short_ratio'] = round(p_data['option_index_put_long'] / max(1, p_data['option_index_put_short']), 2)
             p_data['future_index_long_short_ratio'] = round(p_data['future_index_long'] / max(1, p_data['future_index_short']), 2)
 
             participants[matched_p] = p_data
 
-        # Compute Smart Money (FII + PRO) aggregate totals
         fii = participants.get('FII', {})
         pro = participants.get('PRO', {})
         client = participants.get('CLIENT', {})
@@ -290,7 +290,6 @@ class ParticipantOIExtractor:
             'net_put_delta': fii.get('index_puts_net', 0) + pro.get('index_puts_net', 0),
         }
 
-        # Retail Trap Diagnostic
         retail_trap = {
             'is_trapped_long_calls': client.get('index_calls_net', 0) > 40000 and smart_money['index_calls_net'] < 0,
             'is_trapped_long_puts': client.get('index_puts_net', 0) > 40000 and smart_money['index_puts_net'] < 0,
@@ -300,49 +299,48 @@ class ParticipantOIExtractor:
         }
 
         return {
-            'date': target_date_str,
+            'date': target_date_str or val_res.detected_date,
             'participants': participants,
             'smart_money': smart_money,
             'retail_trap': retail_trap,
-            'raw_lines_count': len(lines)
+            'raw_lines_count': len(lines),
+            'validation': val_res.to_dict(),
+            'is_authentic': val_res.is_authentic,
+            'is_valid': val_res.is_valid,
+            'source_type': val_res.source_type,
+            'zero_sum_balanced': val_res.zero_sum_balanced
         }
 
     def extract(self, date_str: str) -> dict:
         """Main entry point: fetches raw CSV and parses it for a single date."""
-        raw_csv = self.fetch_raw(date_str)
-        return self.parse(raw_csv, target_date_str=date_str)
+        raw_csv, source_type = self.fetch_raw(date_str)
+        return self.parse(raw_csv, target_date_str=date_str, source_hint=source_type)
 
     def extract_multi_day(self, target_date_str: str, days: int = 5) -> dict:
         """
         Extracts multi-day sequential participant data to compute Delta OI (daily changes).
-        Returns list of daily snapshots sorted chronologically with daily delta values.
+        Maintains historical authentic sessions.
         """
         try:
             target_dt = datetime.strptime(target_date_str, "%Y-%m-%d")
         except ValueError:
             target_dt = datetime.now()
 
-        dates_to_check = []
+        daily_records = []
         cur_dt = target_dt
-        while len(dates_to_check) < days and len(dates_to_check) < 15:
-            # Exclude weekends
+        while len(daily_records) < days and (target_dt - cur_dt).days < 25:
             if cur_dt.weekday() < 5:
-                dates_to_check.append(cur_dt.strftime("%Y-%m-%d"))
+                d_str = cur_dt.strftime("%Y-%m-%d")
+                rec = self.extract(d_str)
+                if rec and rec.get('participants') and rec.get('is_valid', True):
+                    daily_records.append(rec)
             cur_dt -= timedelta(days=1)
 
-        dates_to_check.reverse()
+        daily_records.reverse()
 
-        daily_records = []
-        for d_str in dates_to_check:
-            rec = self.extract(d_str)
-            if rec and rec.get('participants'):
-                daily_records.append(rec)
-
-        # Compute delta changes between consecutive days
         enriched_history = []
         for i, curr in enumerate(daily_records):
             if i == 0:
-                # Baseline session
                 curr_copy = dict(curr)
                 curr_copy['deltas'] = {}
                 enriched_history.append(curr_copy)
@@ -376,7 +374,9 @@ class ParticipantOIExtractor:
             'target_date': target_date_str,
             'sessions_count': len(enriched_history),
             'history': enriched_history,
-            'latest': latest_record
+            'latest': latest_record,
+            'validation': latest_record.get('validation', {}),
+            'is_authentic': latest_record.get('is_authentic', False)
         }
 
 
@@ -387,8 +387,10 @@ extract_multi_day_oi = extractor.extract_multi_day
 
 
 if __name__ == "__main__":
+    import sys
+    sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description="Section 1 Extractor: Participant-Wise Open Interest")
-    parser.add_argument("--date", type=str, default="2026-10-30", help="Target trading date (YYYY-MM-DD)")
+    parser.add_argument("--date", type=str, default="2026-11-02", help="Target trading date (YYYY-MM-DD)")
     parser.add_argument("--days", type=int, default=5, help="Number of lookback trading days")
     parser.add_argument("--json", action="store_true", help="Output raw JSON")
     args = parser.parse_args()
@@ -400,18 +402,14 @@ if __name__ == "__main__":
         latest = res.get('latest', {})
         p = latest.get('participants', {})
         sm = latest.get('smart_money', {})
-        rt = latest.get('retail_trap', {})
+        val = res.get('validation', {})
         print(f"\n=======================================================")
         print(f" NSE PARTICIPANT-WISE OPEN INTEREST: {args.date}")
+        print(f" Status: {val.get('summary_badge', 'UNKNOWN')} | Zero-Sum: {val.get('zero_sum_balanced')}")
         print(f"=======================================================")
         print(f"PARTICIPANT | IDX FUTURES | IDX CALLS NET | IDX PUTS NET")
         print(f"-------------------------------------------------------")
         for code in ['FII', 'PRO', 'CLIENT', 'DII']:
             d = p.get(code, {})
             print(f"{code:<11} | {d.get('index_futures_net', 0):>11,} | {d.get('index_calls_net', 0):>13,} | {d.get('index_puts_net', 0):>12,}")
-        print(f"-------------------------------------------------------")
-        print(f"Smart Money Calls Net: {sm.get('index_calls_net', 0):,} | Puts Net: {sm.get('index_puts_net', 0):,}")
-        print(f"Retail Calls Net:      {rt.get('client_call_net', 0):,} | Puts Net: {rt.get('client_put_net', 0):,}")
-        print(f"Trapped Long Calls:    {rt.get('is_trapped_long_calls')}")
-        print(f"Trapped Long Puts:     {rt.get('is_trapped_long_puts')}")
         print(f"=======================================================\n")
