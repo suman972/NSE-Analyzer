@@ -27,12 +27,12 @@
             <!-- Trading Date Selector -->
             <div class="rep-ctrl-item">
                 <label for="repDateInput">📅 SESSION:</label>
-                <input type="date" id="repDateInput" class="rep-date-input" value="2026-10-30" title="Click to change Trading Date">
+                <input type="date" id="repDateInput" class="rep-date-input" value="{{ default_date or latest_session_date }}" title="Click to change Trading Date">
             </div>
 
             <!-- Quick Date Presets -->
             <div style="display: inline-flex; align-items: center; gap: 4px;">
-                <button type="button" class="btn btn-sm date-preset-btn" data-preset="2026-10-30" style="padding: 6px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); color: #cbd5e1;" title="Latest Verified Live Session">⚡ 30 Oct (Latest)</button>
+                <button type="button" class="btn btn-sm date-preset-btn" data-preset="{{ latest_session_date }}" style="padding: 6px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); color: #cbd5e1;" title="Latest Verified Live Session">⚡ {{ latest_session_label }} (Latest)</button>
             </div>
 
             <!-- Copy Summary Button -->
@@ -96,7 +96,7 @@
             </div>
             <div class="memo-meta">
                 <p><strong>SECURITY:</strong> <span class="print-symbol">NIFTY 50</span></p>
-                <p><strong>SESSION DATE:</strong> <span class="print-date">2026-10-30</span></p>
+                <p><strong>SESSION DATE:</strong> <span class="print-date">{{ latest_session_date }}</span></p>
             </div>
         </div>
         <div class="memo-divider"></div>
@@ -165,7 +165,7 @@
                         <span class="confidence-pill" id="repConfidencePill">
                             <span class="conf-dot">●</span> 84% Institutional Conviction
                         </span>
-                        <span class="session-chip" id="repActiveSessionChip">Session: 2026-10-30</span>
+                        <span class="session-chip" id="repActiveSessionChip">Session: {{ latest_session_date }}</span>
                     </div>
                 </div>
 
