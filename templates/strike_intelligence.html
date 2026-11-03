@@ -27,12 +27,12 @@
             <!-- Trading Date Selector -->
             <div class="oc-ctrl-item">
                 <label for="siDateInput">📅 SESSION:</label>
-                <input type="date" id="siDateInput" class="oc-date-input" value="2026-10-30" title="Click to change Trading Date">
+                <input type="date" id="siDateInput" class="oc-date-input" value="{{ default_date or latest_session_date }}" title="Click to change Trading Date">
             </div>
 
             <!-- Quick Date Presets -->
             <div style="display: inline-flex; align-items: center; gap: 4px;">
-                <button type="button" class="btn btn-sm date-preset-btn" data-preset="2026-10-30" style="padding: 6px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); color: #cbd5e1;" title="Latest Verified Live Session">⚡ 30 Oct (Latest)</button>
+                <button type="button" class="btn btn-sm date-preset-btn" data-preset="{{ latest_session_date }}" style="padding: 6px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); color: #cbd5e1;" title="Latest Verified Live Session">⚡ {{ latest_session_label }} (Latest)</button>
             </div>
 
             <!-- Refresh Button -->
