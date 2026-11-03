@@ -1,0 +1,500 @@
+{% extends "base.html" %}
+
+{% block title %}Home & Overview | NSE Derivatives Intelligence{% endblock %}
+
+{% block content %}
+<div class="home-page-container">
+    <!-- Hero Banner -->
+    <section class="home-hero-card">
+        <div class="home-hero-content">
+            <div class="hero-badge-row">
+                <span class="hero-tag">INSTITUTIONAL DERIVATIVES INTELLIGENCE</span>
+                <span class="hero-status-pill">● LIVE TERMINAL</span>
+            </div>
+            <h1 class="home-hero-title">Market Stance & Analytical Gateway</h1>
+            <p class="home-hero-desc">
+                Clean, dedicated multi-page workspace. Access the professional 13-column NSE Option Chain 
+                or analyze Participant-wise Open Interest across all 6 instruments without clutter.
+            </p>
+        </div>
+        <div class="home-hero-actions">
+            <a href="/participant-oi" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #38bdf8); color: #000; font-weight: 800; border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);">
+                <span class="btn-icon">👥</span> Participant-Wise OI Analyzer
+            </a>
+            <a href="/option-chain" class="btn btn-outline">
+                <span class="btn-icon">📊</span> Option Chain
+            </a>
+            <a href="/pipeline" class="btn btn-outline">
+                <span class="btn-icon">⚡</span> 5-Data Pipeline
+            </a>
+            <a href="/strike-intelligence" class="btn btn-outline">
+                <span class="btn-icon">🎯</span> Strike Intel
+            </a>
+            <a href="/details-report" class="btn btn-outline">
+                <span class="btn-icon">📑</span> Details Report
+            </a>
+            <a href="/option-selling" class="btn btn-outline" style="border-color: #f59e0b; color: #fbbf24;">
+                <span class="btn-icon">🛡️</span> Option Selling
+            </a>
+        </div>
+    </section>
+
+    <!-- Master Date Integration & Multi-Section Synchronization Hub -->
+    <section class="home-date-hub-section">
+        <div class="home-date-hub-card">
+            <div class="home-date-hub-header">
+                <div class="home-date-hub-title-box">
+                    <div class="home-date-hub-icon">📅</div>
+                    <div>
+                        <h2 class="home-date-hub-title">
+                            Master Date Integration Hub
+                            <span class="home-date-hub-badge">ALL 6 SECTIONS SYNCHRONIZED</span>
+                        </h2>
+                        <p class="home-date-hub-sub">
+                            Choose or change any trading date to automatically integrate, fetch, and coordinate data across all 6 analytical sections.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Date Controls -->
+                <div class="home-date-hub-controls">
+                    <span class="ctrl-tag" style="color: #cbd5e1; font-weight: 700;">ACTIVE SESSION:</span>
+                    <input type="date" id="homeMasterDateInput" class="ctrl-date-input" value="2026-10-30" title="Choose date to integrate all sections">
+                    
+                    <!-- Quick Date Presets -->
+                    <div style="display: inline-flex; align-items: center; gap: 6px;">
+                        <button type="button" class="btn btn-sm date-preset-btn" data-preset="2026-10-30" style="padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.1); color: #4ade80;" title="Latest Verified Live Session">⚡ 30 Oct (Latest)</button>
+                    </div>
+
+                    <span class="ctrl-sep" style="margin: 0 4px;">|</span>
+                    
+                    <label for="homeLookbackSelect" class="ctrl-tag">LOOKBACK:</label>
+                    <select id="homeLookbackSelect" class="ctrl-select" title="Choose number of historical sessions">
+                        <option value="5" selected>5 Days</option>
+                        <option value="4">4 Days</option>
+                        <option value="3">3 Days</option>
+                        <option value="2">2 Days</option>
+                    </select>
+
+                    <button type="button" class="btn btn-fetch-primary" id="btnHomeSyncAll" style="padding: 8px 16px; font-weight: 700;" title="Fetch & synchronize all data for this date">
+                        <span class="btn-icon">⚡</span> Sync All Sections
+                    </button>
+                </div>
+            </div>
+
+            <!-- Synchronization Status Notification Bar -->
+            <div id="homeSyncStatusBox" class="home-sync-status-box">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span id="homeSyncStatusIcon" style="font-size: 15px;">🔄</span>
+                    <span id="homeSyncStatusText">Integrated across all sections. Active Date: <strong id="homeActiveDateText" style="color: #38bdf8;">2026-10-30</strong></span>
+                </div>
+                <div class="home-sync-status-meta">
+                    <span>⚡ Real-time multi-view synchronization active</span>
+                </div>
+            </div>
+
+            <!-- Integrated Section Grid: Shows live synchronized status & 1-click jump for each module -->
+            <div class="home-sync-modules-grid">
+                <a href="/participant-oi" class="home-sync-module-card" id="syncLinkParticipant">
+                    <div class="hsmc-header">
+                        <span class="hsmc-title">👥 Participant-Wise OI</span>
+                        <span class="home-sync-chip" id="chipParticipant">● Synced</span>
+                    </div>
+                    <span class="hsmc-sub">6 Instruments Breakdown (FUTIDX, OPTIDX, STK)</span>
+                </a>
+
+                <a href="/option-chain" class="home-sync-module-card" id="syncLinkOc">
+                    <div class="hsmc-header">
+                        <span class="hsmc-title">📊 Proper Option Chain</span>
+                        <span class="home-sync-chip" id="chipOc">● Synced</span>
+                    </div>
+                    <span class="hsmc-sub">13-Col View • NIFTY & BANKNIFTY Greeks</span>
+                </a>
+
+                <a href="/pipeline" class="home-sync-module-card" id="syncLinkPipeline">
+                    <div class="hsmc-header">
+                        <span class="hsmc-title">⚡ 5-Data Pipeline</span>
+                        <span class="home-sync-chip" id="chipPipeline">● Synced</span>
+                    </div>
+                    <span class="hsmc-sub">Composite Quant Cockpit (OI, Vol, FII, Bhav)</span>
+                </a>
+
+                <a href="/strike-intelligence" class="home-sync-module-card" id="syncLinkStrike">
+                    <div class="hsmc-header">
+                        <span class="hsmc-title">🎯 Strike Intelligence</span>
+                        <span class="home-sync-chip" id="chipStrike">● Synced</span>
+                    </div>
+                    <span class="hsmc-sub">Big Player Strike Positioning & Walls</span>
+                </a>
+
+                <a href="/details-report" class="home-sync-module-card" id="syncLinkReport">
+                    <div class="hsmc-header">
+                        <span class="hsmc-title">📑 Details Report</span>
+                        <span class="home-sync-chip" id="chipReport">● Synced</span>
+                    </div>
+                    <span class="hsmc-sub">Institutional Flow & Next-Day Traps</span>
+                </a>
+
+                <a href="/option-selling" class="home-sync-module-card" id="syncLinkSelling">
+                    <div class="hsmc-header">
+                        <span class="hsmc-title">🛡️ Option Selling Advisory</span>
+                        <span class="home-sync-chip" id="chipSelling">● Synced</span>
+                    </div>
+                    <span class="hsmc-sub">Greek & Delta (0.15–0.25) Probability Setups</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Universal Cross-Page Navigation Strip -->
+    <div class="universal-nav-strip">
+        <span class="uns-label">⚡ JUMP TO VIEW:</span>
+        <a href="/participant-oi" class="uns-link" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; font-weight: 700;">
+            <span class="uns-icon">👥</span> Participant-Wise OI Analyzer <span class="uns-badge" style="background: rgba(56, 189, 248, 0.25); color: #38bdf8; border-color: rgba(56, 189, 248, 0.5);">PRIORITY</span>
+        </a>
+        <a href="/option-chain" class="uns-link">
+            <span class="uns-icon">📊</span> Proper Option Chain (NSE Pro View)
+        </a>
+        <a href="/pipeline" class="uns-link">
+            <span class="uns-icon">⚡</span> 5-Data Pipeline <span class="uns-badge" style="background: rgba(168, 85, 247, 0.25); color: #c084fc; border-color: rgba(168, 85, 247, 0.4);">5 DATA</span>
+        </a>
+        <a href="/strike-intelligence" class="uns-link">
+            <span class="uns-icon">🎯</span> Big Player Strikes
+        </a>
+        <a href="/details-report" class="uns-link">
+            <span class="uns-icon">📑</span> Institutional Details Report
+        </a>
+        <a href="/option-selling" class="uns-link">
+            <span class="uns-icon">🛡️</span> Option Selling Advisory <span class="uns-badge">PRO</span>
+        </a>
+    </div>
+
+    <!-- Market Stance Overview Strip -->
+    <section class="home-pulse-section">
+        <div class="home-pulse-grid">
+            <!-- Stance Verdict -->
+            <div class="pulse-card stance-pulse-card">
+                <div class="pulse-card-header">
+                    <span class="pulse-icon">🔮</span>
+                    <span class="pulse-title">NEXT-DAY MARKET STANCE</span>
+                </div>
+                <div class="pulse-main-val">
+                    <h2 id="homeVerdictText">Analyzing Market Flow...</h2>
+                    <span class="forecast-badge" id="homeVerdictBadge">CALCULATING</span>
+                </div>
+                <div class="sentiment-meter-mini">
+                    <div class="meter-bar">
+                        <div class="meter-fill" id="homeMeterFill" style="width: 50%;"></div>
+                    </div>
+                    <div class="meter-labels">
+                        <span>Bearish (-100)</span>
+                        <strong id="homeMeterScore">Score: 0</strong>
+                        <span>Bullish (+100)</span>
+                    </div>
+                </div>
+                <div class="pulse-trap-notice" id="homeTrapNotice" style="display: none;">
+                    <span class="trap-icon">⚠️</span>
+                    <span id="homeTrapText">Retail trap detected! Watch for short squeeze.</span>
+                </div>
+            </div>
+
+            <!-- NIFTY Option Chain Snapshot -->
+            <div class="pulse-card oc-pulse-card">
+                <div class="pulse-card-header">
+                    <span class="pulse-icon">📊</span>
+                    <span class="pulse-title">NIFTY 50 OPTION METRICS</span>
+                    <span class="pulse-live-tag">SPOT SYNC</span>
+                </div>
+                <div class="pulse-stats-grid">
+                    <div class="pstat-item">
+                        <span class="pstat-lbl">Underlying Spot</span>
+                        <strong class="pstat-val" id="homeSpotPrice">25,057.35</strong>
+                    </div>
+                    <div class="pstat-item">
+                        <span class="pstat-lbl">ATM Strike</span>
+                        <strong class="pstat-val" id="homeAtmStrike">25,050</strong>
+                    </div>
+                    <div class="pstat-item">
+                        <span class="pstat-lbl">Put-Call Ratio (PCR)</span>
+                        <strong class="pstat-val" id="homePcrVal">0.68</strong>
+                        <span class="pstat-sub" id="homePcrStance">Bearish / Oversold</span>
+                    </div>
+                    <div class="pstat-item">
+                        <span class="pstat-lbl">Max Pain Magnet</span>
+                        <strong class="pstat-val" id="homeMaxPain">25,050</strong>
+                    </div>
+                </div>
+                <div class="pulse-card-footer">
+                    <span>Oscillation Zone: <strong id="homeOscZone">25,000 - 25,200</strong></span>
+                </div>
+            </div>
+
+            <!-- Institutional Flow Quick Stat -->
+            <div class="pulse-card inst-pulse-card">
+                <div class="pulse-card-header">
+                    <span class="pulse-icon">🏦</span>
+                    <span class="pulse-title">SMART MONEY VS RETAIL</span>
+                </div>
+                <div class="pulse-inst-rows">
+                    <div class="pulse-inst-row">
+                        <span class="inst-name">FIIs (Foreign Inst.)</span>
+                        <strong class="inst-stance cell-green" id="homeFiiStance">Accumulating Longs</strong>
+                    </div>
+                    <div class="pulse-inst-row">
+                        <span class="inst-name">Pros (Prop Desks)</span>
+                        <strong class="inst-stance cell-green" id="homeProStance">Call Buying / Put Writing</strong>
+                    </div>
+                    <div class="pulse-inst-row">
+                        <span class="inst-name">Clients (Retail)</span>
+                        <strong class="inst-stance cell-red" id="homeClientStance">Heavily Trapped in Puts</strong>
+                    </div>
+                </div>
+                <div class="pulse-card-footer">
+                    <span>Gameplan: <strong id="homeActionShort">Buy on intraday dips above 25,000</strong></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Two Primary Dedicated Gateway Cards -->
+    <section class="home-gateways-section">
+        <div class="gateways-header">
+            <h2>Select Dedicated Analytical Workspace</h2>
+            <p>Each module opens in its own clean, focused page without clutter or unnecessary scrolling.</p>
+        </div>
+
+        <div class="gateways-grid">
+            <!-- Gateway Card 1: Participant-Wise OI Analyzer -->
+            <div class="gateway-card gateway-part" style="border: 1px solid rgba(56, 189, 248, 0.4); box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);">
+                <div class="gateway-card-top">
+                    <div class="gateway-icon-box" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">👥</div>
+                    <div class="gateway-title-box">
+                        <span class="gateway-badge badge-part" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">PRIMARY WORKSPACE • 6 INSTRUMENTS</span>
+                        <h3>Participant-Wise OI Analyzer</h3>
+                        <span class="gateway-sub">Dedicated Route: <code>/participant-oi</code></span>
+                    </div>
+                </div>
+
+                <div class="gateway-body">
+                    <p class="gateway-desc">
+                        Dedicated institutional flow workspace tracking Client, DII, FII, and Pro open interest 
+                        across all 6 derivative instruments in strictly enforced sequence with Day-over-Day deltas.
+                    </p>
+
+                    <ul class="gateway-features-list">
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>6 Instruments Sequence:</strong> Index Futures → Index Calls → Index Puts → Stock Futures → Stock Calls → Stock Puts</span>
+                        </li>
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>4 Participant Groups:</strong> Clients (Retail), DIIs, FIIs (Foreign Inst.), Pros</span>
+                        </li>
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>Multi-Day History:</strong> 5-day carried positions with day-over-day net changes</span>
+                        </li>
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>Institutional Sentiment Verdict:</strong> Next-day score & retail trap detection</span>
+                        </li>
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>Positions Bought / Sold Today</strong> with the 4 Golden Trading Rules</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="gateway-footer">
+                    <a href="/participant-oi" class="btn btn-primary btn-gateway" style="background: linear-gradient(135deg, #0284c7, #38bdf8); color: #000; font-weight: 800;">
+                        <span>Open Participant-Wise OI Analyzer</span>
+                        <span class="gateway-arr">→</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Gateway Card 2: Proper Option Chain -->
+            <div class="gateway-card gateway-oc">
+                <div class="gateway-card-top">
+                    <div class="gateway-icon-box">📊</div>
+                    <div class="gateway-title-box">
+                        <span class="gateway-badge badge-oc">NSE PRO 13-COLUMN VIEW</span>
+                        <h3>Proper Option Chain</h3>
+                        <span class="gateway-sub">Dedicated Route: <code>/option-chain</code></span>
+                    </div>
+                </div>
+
+                <div class="gateway-body">
+                    <p class="gateway-desc">
+                        Full-scale 13-column NSE Option Chain for NIFTY, BANKNIFTY, and FINNIFTY with 
+                        strict Call CE on the left, Strike Price in the center, and Put PE on the right.
+                    </p>
+
+                    <ul class="gateway-features-list">
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>In-The-Money (ITM) Golden Shading</strong> with dynamic Spot price divider</span>
+                        </li>
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>Strike Buildup Badges:</strong> Long Buildup, Short Buildup, Short Covering, Long Unwinding</span>
+                        </li>
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>Interactive Strike Buildup SVG Chart</strong> with shaded Oscillation Channel</span>
+                        </li>
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>Participant Flow Matrix:</strong> Index Calls vs Index Puts added/closed positions</span>
+                        </li>
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>Key Levels:</strong> Real-time Max Pain expiry magnet, R1/R2, and S1/S2 depth</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="gateway-footer">
+                    <a href="/option-chain" class="btn btn-secondary btn-gateway">
+                        <span>Open Proper Option Chain</span>
+                        <span class="gateway-arr">→</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Gateway Card 3: Details Report (Institutional Intelligence Briefing) -->
+            <div class="gateway-card gateway-report">
+                <div class="gateway-card-top">
+                    <div class="gateway-icon-box">📑</div>
+                    <div class="gateway-title-box">
+                        <span class="gateway-badge badge-report">INSTITUTIONAL BRIEFING</span>
+                        <h3>Details Report</h3>
+                        <span class="gateway-sub">Dedicated Route: <code>/details-report</code></span>
+                    </div>
+                </div>
+
+                <div class="gateway-body">
+                    <p class="gateway-desc">
+                        Comprehensive institutional-grade derivative report synthesizing FII, PRO, Retail Client, and DII 
+                        positioning with the Proper Option Chain to forecast next-day market behavior and probabilities.
+                    </p>
+
+                    <ul class="gateway-features-list">
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>Market Behavior Probability Matrix:</strong> Upside Squeeze, Rangebound Pinning, Downside Breakdown %</span>
+                        </li>
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>4 Participant Dossiers:</strong> What FII, PRO, Client, and DII positioned, what they want & defense walls</span>
+                        </li>
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>Cross-Reference Synergy:</strong> Participant OI flows directly mapped to Option Chain S1/S2/R1/R2 strikes</span>
+                        </li>
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>3 Actionable Trading Scenarios:</strong> Triggers, targets, invalidations & player reaction playbooks</span>
+                        </li>
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>Bottom Line for Traders:</strong> Crisp 2-minute 9:15 AM game plan and printable executive memo</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="gateway-footer">
+                    <a href="/details-report" class="btn btn-primary btn-gateway btn-gateway-report">
+                        <span>Open Details Report</span>
+                        <span class="gateway-arr">→</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Gateway Card 4: Option Selling Strategies (Zerodha Varsity Greek & Probability Model) -->
+            <div class="gateway-card gateway-selling">
+                <div class="gateway-card-top">
+                    <div class="gateway-icon-box">🛡️</div>
+                    <div class="gateway-title-box">
+                        <span class="gateway-badge badge-selling">VARSITY GREEK & SD MODEL</span>
+                        <h3>Option Selling Strategies</h3>
+                        <span class="gateway-sub">Dedicated Route: <code>/option-selling</code></span>
+                    </div>
+                </div>
+
+                <div class="gateway-body">
+                    <p class="gateway-desc">
+                        Professional quantitative advisory for option sellers. Optimizes the Delta sweet spot (0.15–0.25), 
+                        accelerating Theta time decay, and 1-SD/2-SD normal distribution bands with hedged risk protection.
+                    </p>
+
+                    <ul class="gateway-features-list">
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>Top 3 Ranked Strategies:</strong> Bull Put Spreads, Delta-Neutral Iron Condors, Bear Call Spreads</span>
+                        </li>
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>Exact Strikes for Selling & Hedging:</strong> Delta, Theta, Gamma, LTP, and Net Credit</span>
+                        </li>
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>Exchange SPAN Margin Optimization:</strong> Unlocks 65%–77% margin discounts via protective wings</span>
+                        </li>
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>Probability of Profit (POP %):</strong> Mathematical win-rate based on Black-Scholes and Normal Distribution</span>
+                        </li>
+                        <li>
+                            <span class="feat-check">✓</span>
+                            <span><strong>Strike Efficiency Score (OSES):</strong> Live ranking matrix for all strikes from ATM to Deep OTM</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="gateway-footer">
+                    <a href="/option-selling" class="btn btn-warning btn-gateway" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 800;">
+                        <span>Open Option Selling Advisor</span>
+                        <span class="gateway-arr">→</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4 Golden Rules & Discipline Card -->
+    <section class="home-rules-section">
+        <div class="home-rules-card">
+            <div class="rules-card-header">
+                <div class="rules-card-title">
+                    <span class="rules-shield">🛡️</span>
+                    <h3>The 4 Golden Trading Rules of Institutional Open Interest</h3>
+                </div>
+                <span class="rules-pill">DISCIPLINED EXECUTION</span>
+            </div>
+            <div class="rules-card-grid">
+                <div class="rule-box">
+                    <span class="rule-number">1</span>
+                    <h4>Keep SL in System & Trail</h4>
+                    <p>Never trade naked without a predefined stop loss resting in the exchange order book.</p>
+                </div>
+                <div class="rule-box">
+                    <span class="rule-number">2</span>
+                    <h4>World Market Alignment</h4>
+                    <p>Global cues (GIFT Nifty, Nasdaq, crude) should align with your derivative positioning.</p>
+                </div>
+                <div class="rule-box">
+                    <span class="rule-number">3</span>
+                    <h4>Watch High-Impact News</h4>
+                    <p>Central bank rate decisions or geopolitical events can overpower institutional OI setups.</p>
+                </div>
+                <div class="rule-box">
+                    <span class="rule-number">4</span>
+                    <h4>Price Action Confirmation</h4>
+                    <p>OI signals institutional bias; only enter when price action breaks key 5m/15m chart levels.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
