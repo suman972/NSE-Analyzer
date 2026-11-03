@@ -4551,6 +4551,9 @@ async function loadPipelineData(symbol, dateStr) {
 }
 
 function renderPipelineMasterCard(data) {
+    if (data && data.data_integrity) {
+        updateDataIntegrityUI(data.data_integrity);
+    }
     const scoreEl = document.getElementById('pipeScoreVal');
     if (scoreEl) {
         scoreEl.innerHTML = `${data.composite_score}<span style="font-size: 20px; font-weight: 600; color: #64748b;">/100</span>`;
@@ -5660,4 +5663,152 @@ window.addEventListener('storage', (e) => {
         console.log('[AlphaDeriv] Cross-tab date sync:', e.newValue);
         setActiveTradingDate(e.newValue, true);
     }
+});
+
+
+// --- Data Integrity, Provenance & Validation Controller ---
+function initDataIntegrityModal() {
+    const modal = document.getElementById('dataIntegrityModal');
+    if (!modal) return;
+
+    function openModal() {
+        modal.style.display = 'flex';
+        // Refresh details for current active date
+        const activeDate = getActiveTradingDate();
+        fetch(`/api/data-integrity?date=${activeDate}`)
+            .then(r => r.json())
+            .then(res => {
+                if (res.status === 'success' && res.data_integrity) {
+                    updateDataIntegrityUI(res.data_integrity);
+                }
+            })
+            .catch(err => console.error('Data integrity check error:', err));
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+
+    const pillTopbar = document.getElementById('topbarDataProvenancePill');
+    if (pillTopbar) pillTopbar.addEventListener('click', openModal);
+
+    const pillPipeline = document.getElementById('pipelineDataIntegrityBadge');
+    if (pillPipeline) pillPipeline.addEventListener('click', openModal);
+
+    const btnClose1 = document.getElementById('btnCloseDataIntegrity');
+    if (btnClose1) btnClose1.addEventListener('click', closeModal);
+
+    const btnClose2 = document.getElementById('btnCloseDataIntegrity2');
+    if (btnClose2) btnClose2.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+}
+
+function updateDataIntegrityUI(integrity) {
+    if (!integrity) return;
+    const badgeText = integrity.badge || '🛡️ AUTHENTIC NSE EOD • 100% VERIFIED';
+    const isReliable = integrity.is_reliable !== false;
+    const isSynthetic = integrity.status === 'SYNTHETIC_WARNING' || integrity.grade === 'FAIL';
+
+    // 1. Topbar Badge
+    const topText = document.getElementById('topbarProvenanceBadge');
+    const topIcon = document.getElementById('topbarProvenanceIcon');
+    const topPill = document.getElementById('topbarDataProvenancePill');
+    if (topText) topText.innerText = badgeText.replace(/^[^\w]+/, '').trim() || badgeText;
+    if (topIcon) topIcon.innerText = isSynthetic ? '⚠️' : (isReliable ? '🛡️' : '📁');
+    if (topPill) {
+        if (isSynthetic) {
+            topPill.style.background = 'rgba(239, 68, 68, 0.2)';
+            topPill.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+            topPill.style.color = '#f87171';
+        } else if (isReliable) {
+            topPill.style.background = 'rgba(16, 185, 129, 0.18)';
+            topPill.style.borderColor = 'rgba(16, 185, 129, 0.45)';
+            topPill.style.color = '#34d399';
+        } else {
+            topPill.style.background = 'rgba(245, 158, 11, 0.18)';
+            topPill.style.borderColor = 'rgba(245, 158, 11, 0.45)';
+            topPill.style.color = '#fbbf24';
+        }
+    }
+
+    // 2. Pipeline Window Badge
+    const pipeText = document.getElementById('pipeIntegrityText');
+    const pipeIcon = document.getElementById('pipeIntegrityIcon');
+    const pipePill = document.getElementById('pipelineDataIntegrityBadge');
+    if (pipeText) pipeText.innerText = badgeText;
+    if (pipeIcon) pipeIcon.innerText = isSynthetic ? '⚠️' : (isReliable ? '🛡️' : '📁');
+    if (pipePill) {
+        if (isSynthetic) {
+            pipePill.style.background = 'rgba(239, 68, 68, 0.2)';
+            pipePill.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+            pipePill.style.color = '#f87171';
+        } else if (isReliable) {
+            pipePill.style.background = 'rgba(16, 185, 129, 0.18)';
+            pipePill.style.borderColor = 'rgba(16, 185, 129, 0.45)';
+            pipePill.style.color = '#34d399';
+        } else {
+            pipePill.style.background = 'rgba(245, 158, 11, 0.18)';
+            pipePill.style.borderColor = 'rgba(245, 158, 11, 0.45)';
+            pipePill.style.color = '#fbbf24';
+        }
+    }
+
+    // 3. Modal Summary
+    const modalBadge = document.getElementById('modalIntegrityBadge');
+    const modalScore = document.getElementById('modalIntegrityScore');
+    if (modalBadge) modalBadge.innerText = badgeText;
+    if (modalScore) {
+        const scoreVal = integrity.score !== undefined ? integrity.score : 100.0;
+        const gradeVal = integrity.grade || 'A+';
+        modalScore.innerHTML = `${scoreVal}% <span style="font-size: 13px; font-weight: 700; color: #38bdf8;">(Grade ${gradeVal})</span>`;
+    }
+
+    // 4. Populate details list if provided
+    const fileListEl = document.getElementById('modalIntegrityFileList');
+    if (fileListEl && integrity.details && integrity.details.length > 0) {
+        let html = '';
+        integrity.details.forEach((d, idx) => {
+            const isOk = d.is_valid && d.is_authentic;
+            const badgeIcon = isOk ? '✅ VERIFIED' : (d.is_synthetic ? '⚠️ SYNTHETIC' : '❌ MISSING');
+            const color = isOk ? '#34d399' : (d.is_synthetic ? '#f87171' : '#fbbf24');
+            const titleMap = {
+                'PARTICIPANT_OI': 'File 1: fao_participant_oi (Participant OI)',
+                'PARTICIPANT_VOL': 'File 2: fao_participant_vol (Participant Volumes)',
+                'FII_STATS': 'File 3: fii_stats (FII Derivatives Statistics)',
+                'BHAVCOPY_FO': 'File 4: BhavCopy_NSE_FO (UDiFF FO Option Chain)',
+                'SEC_BHAVDATA_CASH': 'File 5: sec_bhavdata (Cash Security Deliverables)'
+            };
+            const title = titleMap[d.data_type] || `File ${idx+1}: ${d.data_type}`;
+            const sub = d.zero_sum_balanced ? 'Zero-Sum Balance Verified (Total Long == Total Short) • 14 Columns' : (d.checks_passed && d.checks_passed[0] ? d.checks_passed[0] : `Detected Date: ${d.detected_date || 'Session'}`);
+
+            html += `
+                <div style="padding: 10px 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 700; font-size: 13px; color: #f1f5f9;">${title}</div>
+                        <div style="font-size: 11px; color: #94a3b8;">${sub}</div>
+                    </div>
+                    <span style="color: ${color}; font-weight: 800; font-size: 12px;">${badgeIcon}</span>
+                </div>
+            `;
+        });
+        fileListEl.innerHTML = html;
+    }
+}
+
+// Hook into DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    initDataIntegrityModal();
+    // Query initial data integrity for active date
+    const d = getActiveTradingDate();
+    fetch(`/api/data-integrity?date=${d}`)
+        .then(r => r.json())
+        .then(res => {
+            if (res.status === 'success' && res.data_integrity) {
+                updateDataIntegrityUI(res.data_integrity);
+            }
+        })
+        .catch(() => {});
 });
