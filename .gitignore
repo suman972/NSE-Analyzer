@@ -1,0 +1,41 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+venv/
+env/
+.env
+.venv/
+
+# Uploads (user-specific, not needed in repo)
+uploads/
+
+# Logs
+*.log
+server_log.txt
+
+# Large binaries
+cloudflared.exe
+
+# Old/temp files
+cookies.txt
+nse_home.html
+oc_nifty.json
+yt_extracted.json
+get_yt_info.py
+
+# Developer test scripts
+test_*.py
+verify_*.py
+check_*.py
+patch_*.py
+apply_*.py
+scratch_*.py
+
+# Windows
+Thumbs.db
+Desktop.ini
