@@ -1,0 +1,666 @@
+{% extends "base.html" %}
+
+{% block title %}Proper Option Chain (13-Column Pro View) | NSE Derivatives Intelligence{% endblock %}
+
+{% block content %}
+<div class="option-chain-page-container">
+    <!-- Top Control Bar -->
+    <div class="oc-page-header">
+        <div class="oc-header-left">
+            <div class="oc-page-title-box">
+                <span class="oc-title-icon">📊</span>
+                <div>
+                    <h1 class="oc-page-title">Proper Option Chain (NSE Pro View)</h1>
+                    <p class="oc-page-sub">Calls (CE) on Left • Strike in Center • Puts (PE) on Right • Golden ITM Tinting</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="oc-header-right">
+            <!-- Symbol Pills -->
+            <div class="oc-symbol-pills" id="ocMainSymbolPills">
+                <button type="button" class="oc-pill-btn active" data-symbol="NIFTY">NIFTY 50</button>
+                <button type="button" class="oc-pill-btn" data-symbol="BANKNIFTY">BANK NIFTY</button>
+                <button type="button" class="oc-pill-btn" data-symbol="FINNIFTY">FIN NIFTY</button>
+            </div>
+
+            <!-- Expiry Selector -->
+            <div class="oc-ctrl-item">
+                <label for="ocMainExpirySelect">EXPIRY:</label>
+                <select id="ocMainExpirySelect" class="oc-select"></select>
+            </div>
+
+            <!-- Strike Range Selector -->
+            <div class="oc-ctrl-item">
+                <label for="ocMainWindowSelect">STRIKES:</label>
+                <select id="ocMainWindowSelect" class="oc-select">
+                    <option value="10">ATM ± 10</option>
+                    <option value="15" selected>ATM ± 15</option>
+                    <option value="25">ATM ± 25</option>
+                    <option value="0">All Strikes</option>
+                </select>
+            </div>
+
+            <!-- Trading Date Selector -->
+            <div class="oc-ctrl-item">
+                <label for="ocMainDateInput">📅 SESSION:</label>
+                <input type="date" id="ocMainDateInput" class="oc-date-input" value="2026-10-30" title="Click to change Trading Date">
+            </div>
+
+            <!-- Quick Date Presets -->
+            <div style="display: inline-flex; align-items: center; gap: 4px;">
+                <button type="button" class="btn btn-sm date-preset-btn" data-preset="2026-10-30" style="padding: 5px 8px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); color: #cbd5e1;" title="Latest Verified Live Session">⚡ 30 Oct (Latest)</button>
+            </div>
+
+            <!-- Refresh Button -->
+            <button type="button" class="btn btn-outline btn-sm" id="btnMainRefreshOc" title="Reload Option Chain from NSE">
+                🔄 Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Universal Cross-Page Navigation Strip -->
+    <div class="universal-nav-strip">
+        <span class="uns-label">⚡ JUMP TO VIEW:</span>
+        <a href="/pipeline" class="uns-link">
+            <span class="uns-icon">⚡</span> 5-Data Pipeline <span class="uns-badge" style="background: rgba(168, 85, 247, 0.25); color: #c084fc; border-color: rgba(168, 85, 247, 0.4);">5 DATA</span>
+        </a>
+        <a href="/participant-oi" class="uns-link {% if active_page == 'participant_oi' %}active{% endif %}">
+            <span class="uns-icon">👥</span> Participant-Wise OI Analyzer
+        </a>
+        <a href="/option-chain" class="uns-link {% if active_page == 'option_chain' %}active{% endif %}">
+            <span class="uns-icon">📊</span> Proper Option Chain (NSE Pro View)
+        </a>
+        <a href="/details-report" class="uns-link {% if active_page == 'details_report' %}active{% endif %}">
+            <span class="uns-icon">📑</span> Institutional Details Report
+        </a>
+        <a href="/option-selling" class="uns-link {% if active_page == 'option_selling' %}active{% endif %}">
+            <span class="uns-icon">🛡️</span> Option Selling Advisory <span class="uns-badge">PRO</span>
+        </a>
+    </div>
+
+    <!-- Market Intelligence Metrics Strip -->
+    <div class="oc-metrics-strip" id="ocMainMetricsStrip">
+        <div class="oc-metric-card spot-card">
+            <span class="oc-metric-lbl">UNDERLYING SPOT</span>
+            <strong class="oc-metric-val" id="ocMainSpotPrice">25,057.35</strong>
+            <span class="oc-metric-sub" id="ocMainAtmStrike">ATM: 25,050</span>
+        </div>
+        <div class="oc-metric-card pcr-card">
+            <span class="oc-metric-lbl">PUT-CALL RATIO (PCR)</span>
+            <strong class="oc-metric-val" id="ocMainPcrVal">0.68</strong>
+            <span class="oc-metric-sub" id="ocMainPcrStance">Bearish / Oversold</span>
+        </div>
+        <div class="oc-metric-card maxpain-card">
+            <span class="oc-metric-lbl">MAX PAIN STRIKE</span>
+            <strong class="oc-metric-val" id="ocMainMaxPainVal">25,050</strong>
+            <span class="oc-metric-sub">Expiry Magnet Level</span>
+        </div>
+        <div class="oc-metric-card res-card">
+            <span class="oc-metric-lbl">MAJOR RESISTANCE (R1 & R2)</span>
+            <strong class="oc-metric-val" id="ocMainResStrike">25,200 (R1)</strong>
+            <span class="oc-metric-sub" id="ocMainResOi">R2: 25,300 (1,25,000 OI)</span>
+        </div>
+        <div class="oc-metric-card sup-card">
+            <span class="oc-metric-lbl">MAJOR SUPPORT (S1 & S2)</span>
+            <strong class="oc-metric-val" id="ocMainSupStrike">25,000 (S1)</strong>
+            <span class="oc-metric-sub" id="ocMainSupOi">S2: 24,900 (1,10,000 OI)</span>
+        </div>
+        <div class="oc-metric-card osc-card">
+            <span class="oc-metric-lbl">OSCILLATION ZONE</span>
+            <strong class="oc-metric-val" id="ocMainOscZoneVal">25,000 - 25,200</strong>
+            <span class="oc-metric-sub" id="ocMainOscZoneSub">Expected Range Channel</span>
+        </div>
+    </div>
+
+    <!-- 4-Participant Perspective Switcher Bar -->
+    <div class="oc-perspective-bar">
+        <div class="oc-perspective-header">
+            <span class="perspective-lbl">🎯 PARTICIPANT PERSPECTIVE:</span>
+            <span class="perspective-sub">Filter strike highlights, defense walls, traps & institutional strategy</span>
+        </div>
+        <div class="perspective-pills" id="ocPerspectivePills">
+            <button type="button" class="perspective-pill-btn active" data-perspective="all">
+                <span class="pill-ico">👑</span> All Big Players (FII + Pro vs Client)
+            </button>
+            <button type="button" class="perspective-pill-btn" data-perspective="fii">
+                <span class="pill-ico">🏦</span> FII Perspective
+            </button>
+            <button type="button" class="perspective-pill-btn" data-perspective="pro">
+                <span class="pill-ico">🏢</span> Pro Desk Perspective
+            </button>
+            <button type="button" class="perspective-pill-btn" data-perspective="client">
+                <span class="pill-ico">👤</span> Client (Retail) Perspective
+            </button>
+        </div>
+    </div>
+
+    <!-- Big Player Game Plan & Probabilistic Forecast Banner -->
+    <div class="oc-fii-tracker-card oc-big-player-banner" id="ocFiiBuildupTrackerCard">
+        <div class="fii-tracker-header">
+            <div class="fii-tracker-title-wrap">
+                <span class="fii-tracker-icon" id="ocGamePlanIcon">👑</span>
+                <div>
+                    <div class="fii-tracker-badge-row">
+                        <span class="fii-badge-pill" id="ocGamePlanBadge">BIG PLAYER DERIVATIVE INTELLIGENCE</span>
+                        <span class="fii-status-pill" id="ocFiiStancePill">🛡️ DEFENSIVE BULLISH / PUT WRITING DOMINANCE</span>
+                    </div>
+                    <h2 class="fii-tracker-title" id="ocGamePlanHeadline">Big Player Game Plan & Probabilistic Market Roadmap</h2>
+                    <p class="fii-tracker-sub" id="ocGamePlanSub">Mathematical S&R holding probabilities, pinning corridors, and multi-participant positioning</p>
+                </div>
+            </div>
+            
+            <!-- Target Destination & Pinning Corridor Box -->
+            <div class="fii-corridor-box oc-target-pin-card">
+                <div class="target-card-top">
+                    <span class="fii-corridor-label">🎯 TARGET DESTINATION & PINNING CORRIDOR</span>
+                    <span class="target-decay-chip" id="ocTargetDecayChip">Max Decay Zone</span>
+                </div>
+                <strong class="fii-corridor-val" id="ocFiiCorridorVal">25,050 - 25,150 Target Zone</strong>
+                <div class="target-prob-row">
+                    <span class="target-prob-label">Pinning Probability:</span>
+                    <strong class="target-prob-val" id="ocTargetProbVal">78%</strong>
+                    <div class="target-prob-bar-wrap">
+                        <div class="target-prob-bar-fill" id="ocTargetProbFill" style="width: 78%;"></div>
+                    </div>
+                </div>
+                <span class="fii-corridor-spread" id="ocFiiCorridorSpread">100 pts Institutional Pin Corridor</span>
+            </div>
+        </div>
+
+        <!-- 3-Column Probabilistic Analysis Grid -->
+        <div class="oc-probabilistic-grid">
+            <!-- Col 1: Probabilistic Support & Resistance Scorecard -->
+            <div class="prob-col prob-sr-scorecard">
+                <div class="prob-col-header">
+                    <span class="prob-col-icon">📊</span>
+                    <h4>Probabilistic S&R Scorecard</h4>
+                    <span class="prob-tag-chip">HOLDING CONFIDENCE</span>
+                </div>
+                <div class="prob-sr-list">
+                    <!-- R2 -->
+                    <div class="prob-sr-item item-r2">
+                        <div class="prob-sr-top">
+                            <span class="psr-strike-pill strike-r2" id="psrR2Strike">25,300 (R2)</span>
+                            <span class="psr-role">Secondary Supply Ceiling</span>
+                            <strong class="psr-pct" id="psrR2Pct">91% Hold</strong>
+                        </div>
+                        <div class="psr-bar-wrap">
+                            <div class="psr-bar-fill bar-r2" id="psrR2Bar" style="width: 91%;"></div>
+                        </div>
+                    </div>
+                    <!-- R1 -->
+                    <div class="prob-sr-item item-r1">
+                        <div class="prob-sr-top">
+                            <span class="psr-strike-pill strike-r1" id="psrR1Strike">25,200 (R1)</span>
+                            <span class="psr-role">Primary Smart Money Call Cap</span>
+                            <strong class="psr-pct" id="psrR1Pct">84% Hold</strong>
+                        </div>
+                        <div class="psr-bar-wrap">
+                            <div class="psr-bar-fill bar-r1" id="psrR1Bar" style="width: 84%;"></div>
+                        </div>
+                    </div>
+                    <!-- S1 -->
+                    <div class="prob-sr-item item-s1">
+                        <div class="prob-sr-top">
+                            <span class="psr-strike-pill strike-s1" id="psrS1Strike">25,000 (S1)</span>
+                            <span class="psr-role">Primary Smart Money Put Wall</span>
+                            <strong class="psr-pct" id="psrS1Pct">86% Hold</strong>
+                        </div>
+                        <div class="psr-bar-wrap">
+                            <div class="psr-bar-fill bar-s1" id="psrS1Bar" style="width: 86%;"></div>
+                        </div>
+                    </div>
+                    <!-- S2 -->
+                    <div class="prob-sr-item item-s2">
+                        <div class="prob-sr-top">
+                            <span class="psr-strike-pill strike-s2" id="psrS2Strike">24,900 (S2)</span>
+                            <span class="psr-role">Secondary Deep Demand Base</span>
+                            <strong class="psr-pct" id="psrS2Pct">93% Hold</strong>
+                        </div>
+                        <div class="psr-bar-wrap">
+                            <div class="psr-bar-fill bar-s2" id="psrS2Bar" style="width: 93%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Col 2: Market Regime & Volatility Model -->
+            <div class="prob-col prob-regime-col">
+                <div class="prob-col-header">
+                    <span class="prob-col-icon">⚡</span>
+                    <h4>Market Regime Probabilities</h4>
+                    <span class="prob-tag-chip" id="ocDominantRegimeChip">RANGEBOUND</span>
+                </div>
+                <div class="regime-meters-box">
+                    <div class="regime-row">
+                        <div class="regime-meta">
+                            <span class="regime-name">⚡ Rangebound (Inside S1 - R1)</span>
+                            <strong class="regime-val" id="ocRegimeRangeVal">72%</strong>
+                        </div>
+                        <div class="regime-bar-wrap">
+                            <div class="regime-bar-fill fill-range" id="ocRegimeRangeBar" style="width: 72%;"></div>
+                        </div>
+                    </div>
+                    <div class="regime-row">
+                        <div class="regime-meta">
+                            <span class="regime-name">🚀 Upside Breakout (Above R1)</span>
+                            <strong class="regime-val" id="ocRegimeBreakoutVal">16%</strong>
+                        </div>
+                        <div class="regime-bar-wrap">
+                            <div class="regime-bar-fill fill-breakout" id="ocRegimeBreakoutBar" style="width: 16%;"></div>
+                        </div>
+                    </div>
+                    <div class="regime-row">
+                        <div class="regime-meta">
+                            <span class="regime-name">🔻 Downside Breakdown (Below S1)</span>
+                            <strong class="regime-val" id="ocRegimeBreakdownVal">12%</strong>
+                        </div>
+                        <div class="regime-bar-wrap">
+                            <div class="regime-bar-fill fill-breakdown" id="ocRegimeBreakdownBar" style="width: 12%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="volatility-stats-strip">
+                    <div class="vstat-item">
+                        <span class="vstat-lbl">Implied Vol (IV)</span>
+                        <strong class="vstat-val" id="ocModelIvVal">13.8%</strong>
+                    </div>
+                    <div class="vstat-item">
+                        <span class="vstat-lbl">1-SD Daily Move</span>
+                        <strong class="vstat-val" id="ocModelDailyMove">±142.5 pts</strong>
+                    </div>
+                    <div class="vstat-item">
+                        <span class="vstat-lbl">1-SD Band</span>
+                        <strong class="vstat-val" id="ocModelSd1Band">24,910 - 25,200</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Col 3: Executive Big Player Thesis & Trapped Participants -->
+            <div class="prob-col prob-thesis-col">
+                <div class="prob-col-header">
+                    <span class="prob-col-icon">💡</span>
+                    <h4>Big Player Executive Thesis</h4>
+                    <span class="fii-strategy-badge">HIGH CONVICTION</span>
+                </div>
+                <div class="fii-strategy-body" id="ocFiiStrategyBody">
+                    <p id="ocFiiExplanationText">Smart Money (FII + Pro) has heavily shorted straddles to anchor the market in the 25,050 - 25,150 corridor while defending the 25,000 Put floor.</p>
+                </div>
+                <!-- Trapped Participant Alert Card -->
+                <div class="trapped-participant-alert" id="ocTrappedAlertBox">
+                    <div class="trap-alert-header">
+                        <span class="trap-alert-icon">🚨</span>
+                        <strong class="trap-alert-title" id="ocTrapVictimTitle">Retail Clients Trapped in Puts</strong>
+                    </div>
+                    <p class="trap-alert-desc" id="ocTrapDescText">Retail traders bought +310,500 OTM puts expecting a breakdown, directly into institutional writing.</p>
+                </div>
+                <div class="fii-impact-box">
+                    <span class="impact-label">⚡ Next-Day Price Action Impact:</span>
+                    <span class="impact-text" id="ocFiiImpactText">Expect strong support on dips towards 25,000. Any rally will cause rapid theta crush on retail puts.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4-Participant Stance Breakdown Section -->
+        <div class="oc-4participant-section">
+            <div class="oc-4p-header">
+                <div class="oc-4p-title">
+                    <span class="oc-4p-icon">⚖️</span>
+                    <h3>4-Participant Stance Breakdown (FII, Pro, Client, DII)</h3>
+                </div>
+                <span class="oc-4p-sub">Added/closed positions, institutional conviction & strategic game plan</span>
+            </div>
+            <div class="oc-4p-grid" id="oc4pGrid">
+                <!-- Dynamically populated 4 cards (FII, PRO, CLIENT, DII) -->
+            </div>
+        </div>
+
+        <!-- Dedicated FII Strike-Level Buildup Section (Where FIIs Added/Built Positions) -->
+        <div class="oc-fii-strikes-section" id="ocFiiStrikesSection">
+            <div class="oc-fii-section-header">
+                <div class="oc-fii-section-title">
+                    <span class="oc-fii-sec-icon">🏦</span>
+                    <div>
+                        <h3>FII Strike-Level Position Buildup (Where FIIs Added & Built Positions)</h3>
+                        <p class="oc-fii-sec-sub">Exact strike mapping of FII Call resistance walls vs Put defense cushions & downside hedges</p>
+                    </div>
+                </div>
+            </div>
+            <div class="fii-tracker-grid" id="ocFiiStrikeGrid">
+                <div class="fii-flow-col fii-call-col">
+                    <div class="fii-col-header">
+                        <div class="fii-col-title">
+                            <span class="fii-col-icon">🔴</span>
+                            <h4>FII Call Buildup Strikes (Ceiling & Supply)</h4>
+                        </div>
+                        <span class="fii-flow-stat" id="ocFiiCallNetStat">Net: +19,490 Calls</span>
+                    </div>
+                    <div class="fii-strikes-list" id="ocFiiCallStrikesList"></div>
+                    <div class="fii-col-summary" id="ocFiiCallSummary"></div>
+                </div>
+                <div class="fii-flow-col fii-put-col">
+                    <div class="fii-col-header">
+                        <div class="fii-col-title">
+                            <span class="fii-col-icon">🟢</span>
+                            <h4>FII Put Buildup Strikes (Floor & Demand)</h4>
+                        </div>
+                        <span class="fii-flow-stat" id="ocFiiPutNetStat">Net: -22,480 Puts (Sold)</span>
+                    </div>
+                    <div class="fii-strikes-list" id="ocFiiPutStrikesList"></div>
+                    <div class="fii-col-summary" id="ocFiiPutSummary"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dedicated Big Player Strike Creation & Option Selling Cockpit -->
+    <div class="big-player-strike-cockpit" id="ocBigPlayerCockpit">
+        <div class="bpsc-header">
+            <div class="bpsc-title-wrap">
+                <span class="bpsc-icon">👑</span>
+                <div>
+                    <div class="bpsc-tag-row">
+                        <span class="bpsc-tag">INSTITUTIONAL STRIKE CREATION & OPTION SELLING</span>
+                        <span class="bpsc-sub-tag" id="cockpitDominantStance">BEARISH CEILING DEFENSE</span>
+                    </div>
+                    <h3 class="bpsc-title">Where Big Players Created Positions & What They Want</h3>
+                    <p class="bpsc-sub">Exact strike mapping of smart money short Call ceilings, short Put floors, writer panic breakevens, and trapped retail</p>
+                </div>
+            </div>
+            <div class="bpsc-pop-card">
+                <span class="bpop-label">RECOMMENDED STRATEGY WIN RATE</span>
+                <strong class="bpop-val" id="cockpitPopVal">88.4% POP</strong>
+                <span class="bpop-sub" id="cockpitStratType">Bear Call Credit Spread</span>
+            </div>
+        </div>
+
+        <div class="bpsc-grid">
+            <!-- Col 1: Smart Money Call Bastion (Ceiling) -->
+            <div class="bpsc-card bpsc-call-card">
+                <div class="bpsc-card-header">
+                    <span class="bcard-icon">🔴</span>
+                    <div>
+                        <h4 class="bcard-title">Smart Money Short Call Bastion (Ceiling)</h4>
+                        <span class="bcard-sub">Institutional Overhead Resistance</span>
+                    </div>
+                    <span class="bcard-strike-pill pill-call" id="cockpitCallStrike">25,200 CE (R1)</span>
+                </div>
+                <div class="bpsc-body">
+                    <div class="bpsc-stat-row">
+                        <div class="bstat-item">
+                            <span class="bstat-lbl">Call LTP & Premium</span>
+                            <strong class="bstat-val" id="cockpitCallLtp">₹36.00</strong>
+                        </div>
+                        <div class="bstat-item">
+                            <span class="bstat-lbl">Net Smart Calls</span>
+                            <strong class="bstat-val text-red" id="cockpitCallNet">-1,32,815</strong>
+                        </div>
+                        <div class="bstat-item">
+                            <span class="bstat-lbl">Retention Ratio</span>
+                            <strong class="bstat-val text-gold" id="cockpitCallRetention">42.8% (Overnight)</strong>
+                        </div>
+                    </div>
+                    <div class="bpsc-goal-box">
+                        <span class="bgoal-lbl">🎯 WHAT THEY WANT:</span>
+                        <p class="bgoal-text" id="cockpitCallWant">Defend the 25,200 ceiling. Smart money will aggressively sell into any intraday test towards 25,180 - 25,200 to capture 100% theta decay.</p>
+                    </div>
+                    <div class="bpsc-panic-box call-panic">
+                        <span class="bpanic-lbl">🚨 CALL WRITER PANIC BREAKEVEN:</span>
+                        <strong class="bpanic-val" id="cockpitCallPanic">₹25,236.0</strong>
+                        <p class="bpanic-desc">If spot sustains above this price, institutional call sellers run into loss and are forced into emergency short covering.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Col 2: Smart Money Put Bastion (Floor) -->
+            <div class="bpsc-card bpsc-put-card">
+                <div class="bpsc-card-header">
+                    <span class="bcard-icon">🟢</span>
+                    <div>
+                        <h4 class="bcard-title">Smart Money Short Put Bastion (Floor)</h4>
+                        <span class="bcard-sub">Institutional Demand Floor</span>
+                    </div>
+                    <span class="bcard-strike-pill pill-put" id="cockpitPutStrike">25,000 PE (S1)</span>
+                </div>
+                <div class="bpsc-body">
+                    <div class="bpsc-stat-row">
+                        <div class="bstat-item">
+                            <span class="bstat-lbl">Put LTP & Premium</span>
+                            <strong class="bstat-val" id="cockpitPutLtp">₹76.30</strong>
+                        </div>
+                        <div class="bstat-item">
+                            <span class="bstat-lbl">Net Smart Puts</span>
+                            <strong class="bstat-val text-green" id="cockpitPutNet">+1,24,804</strong>
+                        </div>
+                        <div class="bstat-item">
+                            <span class="bstat-lbl">Retention Ratio</span>
+                            <strong class="bstat-val text-gold" id="cockpitPutRetention">38.6% (Overnight)</strong>
+                        </div>
+                    </div>
+                    <div class="bpsc-goal-box">
+                        <span class="bgoal-lbl">🎯 WHAT THEY WANT:</span>
+                        <p class="bgoal-text" id="cockpitPutWant">Fortify primary support at 25,000. Dips towards 25,000 - 25,050 will trigger aggressive institutional absorption and short-strangle defense.</p>
+                    </div>
+                    <div class="bpsc-panic-box put-panic">
+                        <span class="bpanic-lbl">🚨 PUT WRITER PANIC BREAKEVEN:</span>
+                        <strong class="bpanic-val" id="cockpitPutPanic">₹24,923.7</strong>
+                        <p class="bpanic-desc">If spot breaks below this price, institutional put writers will panic dump futures to hedge underwater put liabilities.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Col 3: Trapped Retail & High-POP Option Selling Setup -->
+            <div class="bpsc-card bpsc-trade-card">
+                <div class="bpsc-card-header">
+                    <span class="bcard-icon">⚡</span>
+                    <div>
+                        <h4 class="bcard-title">High-Probability Option Selling Execution</h4>
+                        <span class="bcard-sub">Flawless Institutional Microstructure Setup</span>
+                    </div>
+                    <span class="bcard-strike-pill pill-gold" id="cockpitStrategyBadge">88.4% WIN RATE</span>
+                </div>
+                <div class="bpsc-body">
+                    <div class="bpsc-trap-box">
+                        <div class="btrap-header">
+                            <span class="btrap-icon">🚨</span>
+                            <strong class="btrap-title" id="cockpitTrapTitle">Retail Clients Trapped in Long Calls</strong>
+                        </div>
+                        <p class="btrap-desc" id="cockpitTrapDesc">Retail accumulated +1,32,815 long calls chasing breakouts. Smart Money sold calls to them. Spot held under 25,200 will bleed retail calls to 0.</p>
+                    </div>
+
+                    <div class="bpsc-trade-blueprint">
+                        <div class="blueprint-title" id="cockpitStratTitle">Bear Call Credit Spread (Sell 25,200 CE / Buy 25,350 CE)</div>
+                        <div class="blueprint-legs-grid" id="cockpitLegsGrid">
+                            <div class="bleg-card bleg-sell">
+                                <span class="bleg-action">SELL</span>
+                                <strong class="bleg-strike" id="cockpitLegSellStrike">25,200 CE</strong>
+                                <span class="bleg-ltp" id="cockpitLegSellLtp">₹36.00 • Primary Wall</span>
+                            </div>
+                            <div class="bleg-card bleg-buy">
+                                <span class="bleg-action">BUY (HEDGE)</span>
+                                <strong class="bleg-strike" id="cockpitLegBuyStrike">25,350 CE</strong>
+                                <span class="bleg-ltp" id="cockpitLegBuyLtp">₹8.50 • OTM Protection</span>
+                            </div>
+                        </div>
+                        <div class="blueprint-footer">
+                            <div class="bfoot-item">
+                                <span class="bfoot-lbl">Net Credit:</span>
+                                <strong class="bfoot-val text-green" id="cockpitNetCredit">+₹2,062 / lot (+27.5 pts)</strong>
+                            </div>
+                            <div class="bfoot-item">
+                                <span class="bfoot-lbl">Stop-Loss Trigger:</span>
+                                <strong class="bfoot-val text-amber" id="cockpitStopLoss">Spot > 25,236.0 (Panic Breakeven)</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Subview Switcher Tabs -->
+    <div class="oc-subview-nav-bar">
+        <div class="oc-subview-tabs" id="ocSubViewTabs">
+            <button type="button" class="subview-tab-btn active" data-subview="table">
+                <span>📋 Option Chain Table</span>
+            </button>
+            <button type="button" class="subview-tab-btn" data-subview="chart">
+                <span>📈 Strike Buildup Chart</span>
+            </button>
+            <button type="button" class="subview-tab-btn" data-subview="synergy">
+                <span>⚖️ Participant Synergy & S&R</span>
+            </button>
+            <button type="button" class="subview-tab-btn" data-subview="all">
+                <span>🔲 All Views (Stacked)</span>
+            </button>
+        </div>
+        <div class="oc-status-pill-sync">
+            <span class="sync-dot"></span>
+            <span>Real-time NSE Archive Data</span>
+        </div>
+    </div>
+
+    <!-- Subview 1: The 13-Column Proper Option Chain Table -->
+    <div class="oc-subview-panel active" id="subviewTable">
+        <div class="oc-table-wrapper oc-table-fullpage">
+            <div class="oc-table-legend">
+                <span class="legend-itm-call"><span class="legend-swatch"></span> In-The-Money (ITM) Calls</span>
+                <span class="legend-itm-put"><span class="legend-swatch"></span> In-The-Money (ITM) Puts</span>
+                <span class="legend-atm"><span class="legend-swatch"></span> At-The-Money (ATM)</span>
+                <span class="legend-sm-wall"><span class="legend-swatch sm-swatch-wall"></span> 👑 Smart Money Defense Wall</span>
+                <span class="legend-sm-pin"><span class="legend-swatch sm-swatch-pin"></span> 🎯 Expiry Magnet Pin</span>
+                <span class="legend-sm-trap"><span class="legend-swatch sm-swatch-trap"></span> 🚨 Retail Trap Zone</span>
+                <span class="legend-sm-squeeze"><span class="legend-swatch sm-swatch-squeeze"></span> ⚡ Short Covering Trigger</span>
+                <span class="legend-fii-write"><span class="legend-swatch fii-swatch-write"></span> + Added Short (Floor)</span>
+                <span class="legend-fii-short"><span class="legend-swatch fii-swatch-short"></span> + Added Short (Wall)</span>
+                <span class="legend-fii-long"><span class="legend-swatch fii-swatch-long"></span> + Added Long</span>
+                <span class="legend-covering"><span class="legend-swatch fii-swatch-covering"></span> - Covered Short</span>
+            </div>
+
+            <div class="oc-table-scroll-container">
+                <table class="oc-table oc-table-pro" id="ocMainTable">
+                    <thead>
+                        <tr class="oc-th-super">
+                            <th colspan="6" class="oc-th-calls">CALLS (CE)</th>
+                            <th class="oc-th-strike">STRIKE PRICE</th>
+                            <th colspan="6" class="oc-th-puts">PUTS (PE)</th>
+                        </tr>
+                        <tr class="oc-th-sub">
+                            <th class="col-oi">OI (Contracts)</th>
+                            <th class="col-chg">Chg in OI</th>
+                            <th class="col-buildup">Buildup & FII Flow</th>
+                            <th class="col-vol">Volume</th>
+                            <th class="col-ltp">LTP (₹)</th>
+                            <th class="col-chg-p">Chg (₹)</th>
+                            <th class="col-strike-center">Strike Price</th>
+                            <th class="col-chg-p">Chg (₹)</th>
+                            <th class="col-ltp">LTP (₹)</th>
+                            <th class="col-vol">Volume</th>
+                            <th class="col-buildup">Buildup & FII Flow</th>
+                            <th class="col-chg">Chg in OI</th>
+                            <th class="col-oi">OI (Contracts)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ocMainTbody">
+                        <!-- Dynamically populated -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subview 2: Interactive Strike Buildup Chart -->
+    <div class="oc-subview-panel" id="subviewChart" style="display: none;">
+        <div class="oc-chart-section">
+            <div class="oc-chart-header">
+                <div class="oc-chart-title-box">
+                    <span class="chart-icon">📈</span>
+                    <div>
+                        <h3>NSE Option Chain Strike Buildup & Oscillation Chart</h3>
+                        <span class="oc-chart-sub">Strike-by-strike Call Writing/Unwinding vs Put Writing/Unwinding with Shaded Oscillation Corridor</span>
+                    </div>
+                </div>
+                <div class="oc-chart-legend">
+                    <span class="legend-badge leg-call-short"><span class="badge-dot"></span> Call Shorting (Resistance)</span>
+                    <span class="legend-badge leg-call-add"><span class="badge-dot"></span> Call Adding (Long)</span>
+                    <span class="legend-badge leg-call-unwind"><span class="badge-dot"></span> Call Unwinding</span>
+                    <span class="legend-badge leg-put-write"><span class="badge-dot"></span> Put Writing (Support)</span>
+                    <span class="legend-badge leg-put-unwind"><span class="badge-dot"></span> Put Unwinding</span>
+                    <span class="legend-badge leg-osc"><span class="badge-dot"></span> Oscillation Zone</span>
+                </div>
+            </div>
+
+            <div class="oc-chart-container">
+                <svg id="ocMainChartSvg" class="oc-svg-chart" viewBox="0 0 1000 320" preserveAspectRatio="xMidYMid meet"></svg>
+                <div class="oc-chart-tooltip" id="ocMainChartTooltip" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subview 3: Participant Flow Matrix & Institutional Synergy -->
+    <div class="oc-subview-panel" id="subviewSynergy" style="display: none;">
+        <!-- 4-Way Participant Flow Matrix -->
+        <div class="oc-flow-section">
+            <div class="oc-section-header">
+                <div class="oc-section-title">
+                    <span class="sec-icon">⚖️</span>
+                    <h3>Participant Position Breakdown (Index Calls vs Index Puts)</h3>
+                </div>
+                <span class="sec-sub">Added/Closed Longs & Shorts for Clients, DIIs, FIIs, and Pros</span>
+            </div>
+            <div class="oc-matrix-wrapper">
+                <table class="oc-matrix-table" id="ocMainParticipantMatrixTable">
+                    <thead>
+                        <tr class="oc-matrix-super">
+                            <th rowspan="2" class="th-pname">Participant</th>
+                            <th colspan="5" class="th-group-call">INDEX CALLS (CE)</th>
+                            <th colspan="5" class="th-group-put">INDEX PUTS (PE)</th>
+                        </tr>
+                        <tr class="oc-matrix-sub">
+                            <th class="col-add-l">Added Long</th>
+                            <th class="col-cls-l">Closed Long</th>
+                            <th class="col-add-s">Added Short</th>
+                            <th class="col-cls-s">Closed Short</th>
+                            <th class="col-net">Net Position</th>
+                            <th class="col-add-l">Added Long</th>
+                            <th class="col-cls-l">Closed Long</th>
+                            <th class="col-add-s">Added Short</th>
+                            <th class="col-cls-s">Closed Short</th>
+                            <th class="col-net">Net Position</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ocMainParticipantMatrixTbody">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Synergy Cards & Written Strategy -->
+        <div class="oc-synergy-section">
+            <div class="oc-synergy-header">
+                <div class="oc-synergy-title">
+                    <span class="synergy-flame">🔥</span>
+                    <h3>Synergy with Participant Data (The Real Power)</h3>
+                </div>
+                <span class="oc-synergy-range" id="ocMainExpectedRange">Expected Range: 25,000 - 25,200</span>
+            </div>
+            <div class="oc-synergy-grid" id="ocMainSynergyCards">
+                <!-- Populated dynamically -->
+            </div>
+
+            <div class="oc-written-box">
+                <div class="oc-written-header">
+                    <span class="written-icon">📝</span>
+                    <h4>Next-Day Institutional Strategy & Oscillation Zone Breakdown</h4>
+                </div>
+                <div class="oc-written-body" id="ocMainWrittenBody">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
