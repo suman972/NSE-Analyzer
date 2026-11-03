@@ -287,15 +287,40 @@ def compute_retention_ratio(oi_data: dict, vol_data: dict) -> dict:
 
     return ratios
 
+_LATEST_DATE_CACHE = {"date": None, "last_checked": 0}
+
 def get_latest_session_date() -> str:
-    """Returns the latest available trading date in cache or nearest trading day."""
+    """
+    Dynamically returns the latest verified trading session.
+    Checks local cache and proactively queries NSE if a newer session is expected to be published.
+    """
+    global _LATEST_DATE_CACHE
+    now_ts = time.time()
+    if _LATEST_DATE_CACHE["date"] and (now_ts - _LATEST_DATE_CACHE["last_checked"]) < 60:
+        return _LATEST_DATE_CACHE["date"]
+
     avail = get_available_cached_dates()
-    if avail:
-        return avail[-1]
-    dt = datetime.now()
-    while dt.weekday() >= 5:
-        dt -= timedelta(days=1)
-    return dt.strftime("%Y-%m-%d")
+    latest = avail[-1] if avail else "2026-11-02"
+
+    now = datetime.now()
+    try:
+        latest_dt = datetime.strptime(latest, "%Y-%m-%d")
+        curr = latest_dt + timedelta(days=1)
+        while curr.date() <= now.date():
+            if curr.weekday() < 5:  # Monday to Friday
+                # If today and before 18:30 IST, market EOD files aren't released yet
+                if curr.date() == now.date() and (now.hour < 18 or (now.hour == 18 and now.minute < 30)):
+                    break
+                success, _, _ = fetch_single_day_from_nse(curr)
+                if success:
+                    latest = curr.strftime("%Y-%m-%d")
+            curr += timedelta(days=1)
+    except Exception:
+        pass
+
+    _LATEST_DATE_CACHE["date"] = latest
+    _LATEST_DATE_CACHE["last_checked"] = now_ts
+    return latest
 
 
 def format_session_label(date_str: str) -> str:
