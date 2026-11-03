@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for
 from oi_engine import parse_pdf, parse_csv, parse_text_stream, calculate_multi_day_oi
 from generate_samples import generate_sample_data, create_csv_files, create_pdf_files
-from nse_fetcher import fetch_nse_range, fetch_single_day_from_nse, fetch_participant_vol, fetch_fii_stats, fetch_cash_delivery_data
+from nse_fetcher import fetch_nse_range, fetch_single_day_from_nse, fetch_participant_vol, fetch_fii_stats, fetch_cash_delivery_data, get_latest_session_date, format_session_label, get_available_cached_dates
 from option_chain_engine import get_option_chain_data
 from report_engine import build_details_report
 from selling_strategy_engine import get_option_selling_advisory
@@ -24,6 +24,30 @@ app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'uploads')
 app.config['SAMPLE_FOLDER'] = os.path.join(os.path.dirname(__file__), 'sample_files')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['SAMPLE_FOLDER'], exist_ok=True)
+
+@app.context_processor
+def inject_latest_session():
+    latest = get_latest_session_date()
+    label = format_session_label(latest)
+    avail = get_available_cached_dates()
+    return {
+        'latest_session_date': latest,
+        'latest_session_label': label,
+        'available_sessions': avail
+    }
+
+@app.route('/api/latest-session', methods=['GET'])
+def api_latest_session():
+    latest = get_latest_session_date()
+    label = format_session_label(latest)
+    avail = get_available_cached_dates()
+    return jsonify({
+        'status': 'success',
+        'latest_date': latest,
+        'latest_label': label,
+        'available_dates': avail
+    })
+
 
 # Disable caching for development so browser updates immediately
 @app.after_request
@@ -174,7 +198,7 @@ def strike_intelligence_view():
 @app.route('/pipeline')
 @app.route('/quant-pipeline')
 def pipeline_view():
-    target_date = request.args.get('date', '2026-10-30').strip() or '2026-10-30'
+    target_date = request.args.get('date', '').strip() or get_latest_session_date()
     symbol = request.args.get('symbol', 'NIFTY').strip().upper() or 'NIFTY'
     from engine import run_engine
     try:
@@ -203,11 +227,11 @@ def index_redirect():
 def api_demo_data():
     """Returns the full parsed and analyzed 5-day dataset for current active session 2026-10-30."""
     try:
-        res = fetch_nse_range("2026-10-30", 5)
+        res = fetch_nse_range(get_latest_session_date(), 5)
         if res.get("status") == "success" and res.get("result"):
             return jsonify({
                 "status": "success",
-                "source": "live_nse_cache_2026_10_30",
+                "source": f"live_nse_cache_{get_latest_session_date().replace('-', '_')}",
                 "file_count": res.get("days_fetched", 5),
                 "result": res["result"]
             })
@@ -597,7 +621,8 @@ def api_pipeline_data():
     except Exception as e:
         print(f"Warning: Pipeline error for date {target_date}: {e}. Trying nearest session fallback.")
         try:
-            fallback_date = '2026-10-30' if target_date != '2026-10-30' else '2026-10-29'
+            latest = get_latest_session_date()
+            fallback_date = latest if target_date != latest else (get_available_cached_dates()[-2] if len(get_available_cached_dates()) > 1 else '2026-10-29')
             data = run_engine(date_str=fallback_date, symbol=symbol, expiry=expiry)
             data['notice'] = f"Requested session {target_date} unavailable; displaying nearest session {fallback_date}."
             return jsonify(data)
