@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>NSE Derivatives Intelligence | FII, DII, Pro & Client Open Interest</title>
+    <link rel="stylesheet" href="/static/css/style.css?v={{ v }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme" data-page="home">
+    <!-- YouTube-style Top Navbar -->
+    <header class="yt-topbar">
+        <div class="yt-topbar-left">
+            <button class="yt-hamburger-btn" id="btnSidebarToggle" title="Toggle Navigation Menu (☰)" aria-label="Toggle navigation">
+                <span>☰</span>
+            </button>
+            <a href="/" class="yt-brand" id="brandLogoLink" title="NSE Derivatives Intelligence Pro">
+                <span class="yt-brand-icon">📊</span>
+                <span class="yt-brand-text">NSE Derivatives</span>
+                <sup class="yt-brand-country">IN</sup>
+            </a>
+        </div>
+
+        <div class="yt-topbar-center">
+            <div class="yt-date-chip" id="topbarDateChip" title="Active Trading Session">
+                <span class="chip-icon">📅</span>
+                <span class="chip-label">TRADING DATE:</span>
+                <strong id="topbarActiveDateDisplay">2026-10-30</strong>
+                <span class="chip-dot"></span>
+                <span class="chip-sync" id="topbarSyncStatus">NSE SYNCED</span>
+            </div>
+        </div>
+
+        <div class="yt-topbar-right">
+            <!-- Quick Actions -->
+            <button type="button" class="yt-top-action-btn" id="btnTopUpload" title="Upload your own daily PDF or CSV files">
+                <span class="act-icon">📁</span>
+                <span class="act-text">Upload</span>
+            </button>
+            <button type="button" class="yt-top-action-btn" id="btnTopPaste" title="Paste raw text or table data">
+                <span class="act-icon">📋</span>
+                <span class="act-text">Paste</span>
+            </button>
+
+            <!-- Number Format: Indian vs International -->
+            <div class="format-toggle" title="Toggle Indian format (1,29,508) vs International (129,508)">
+                <button type="button" class="toggle-btn active" id="btnFmtIn">IN</button>
+                <button type="button" class="toggle-btn" id="btnFmtIntl">INTL</button>
+            </div>
+
+            <!-- Theme Toggle: Light / Dark Mode -->
+            <button type="button" class="theme-toggle-btn" id="btnThemeToggle" title="Toggle Light / Dark Mode">
+                <span id="themeIcon">☀️</span>
+                <span id="themeLabel">Light</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- App Body with YouTube-Style Left Sidebar & Main Viewport -->
+    <div class="yt-app-body">
+        <!-- YouTube Left Sidebar -->
+        <aside class="yt-sidebar" id="ytSidebar" aria-label="Main Navigation">
+            <div class="yt-sidebar-scroll">
+                <!-- Section 1: Main Pages -->
+                <nav class="yt-nav-section" aria-label="Primary Pages">
+                    <a href="/" class="yt-nav-item active" data-nav-page="home" id="navLinkHome" title="Home & Overview Dashboard">
+                        <span class="yt-nav-icon">🏠</span>
+                        <span class="yt-nav-label">Home</span>
+                    </a>
+                    <a href="/option-chain" class="yt-nav-item" data-nav-page="option-chain" id="navLinkOptionChain" title="Proper 13-Column Option Chain (Calls CE | Strike | Puts PE)">
+                        <span class="yt-nav-icon">📊</span>
+                        <span class="yt-nav-label">Proper Option Chain</span>
+                    </a>
+                    <a href="/participant-oi" class="yt-nav-item" data-nav-page="participant-oi" id="navLinkParticipantOi" title="Participant-Wise OI Analyzer (6 Instruments Breakdown)">
+                        <span class="yt-nav-icon">👥</span>
+                        <span class="yt-nav-label">Participant-Wise OI</span>
+                    </a>
+                </nav>
+
+                <div class="yt-sidebar-divider"></div>
+
+                <!-- Section 2: Analytics & Tools -->
+                <div class="yt-sidebar-group">
+                    <div class="yt-sidebar-header">
+                        <span>Analytics & Tools</span>
+                        <span class="yt-header-chevron">›</span>
+                    </div>
+                    <nav class="yt-nav-section" aria-label="Tools">
+                        <button type="button" class="yt-nav-item yt-nav-btn" id="btnSideFetch" title="Auto-fetch data from NSE archives">
+                            <span class="yt-nav-icon">⚡</span>
+                            <span class="yt-nav-label">NSE Auto-Fetch</span>
+                        </button>
+                        <button type="button" class="yt-nav-item yt-nav-btn" id="btnSideUpload" title="Upload daily PDF or CSV files">
+                            <span class="yt-nav-icon">📁</span>
+                            <span class="yt-nav-label">Upload Files</span>
+                        </button>
+                        <button type="button" class="yt-nav-item yt-nav-btn" id="btnSidePaste" title="Paste raw tabular data">
+                            <span class="yt-nav-icon">📋</span>
+                            <span class="yt-nav-label">Paste Raw Data</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <div class="yt-sidebar-divider"></div>
+
+                <!-- Section 3: Discipline & Rules -->
+                <div class="yt-sidebar-group">
+                    <div class="yt-sidebar-header">
+                        <span>Discipline & Rules</span>
+                        <span class="yt-header-chevron">›</span>
+                    </div>
+                    <nav class="yt-nav-section" aria-label="Rules and Guide">
+                        <button type="button" class="yt-nav-item yt-nav-btn" id="btnSideRules" title="4 Golden Rules of Trading">
+                            <span class="yt-nav-icon">🛡️</span>
+                            <span class="yt-nav-label">4 Golden Rules</span>
+                        </button>
+                        <button type="button" class="yt-nav-item yt-nav-btn" id="btnSideGuide" title="Reading Guide & Color Indicators">
+                            <span class="yt-nav-icon">📖</span>
+                            <span class="yt-nav-label">Reading Guide</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <div class="yt-sidebar-divider"></div>
+
+                <!-- Footer in Sidebar -->
+                <div class="yt-sidebar-footer">
+                    <p class="yt-footer-text">NSE Derivative Intelligence v3.2</p>
+                    <p class="yt-footer-sub">Smart Money vs Retail Flow</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Sidebar Backdrop for Mobile/Drawer Mode -->
+        <div class="yt-sidebar-backdrop" id="ytSidebarBackdrop"></div>
+
+        <!-- Main Content Area -->
+        <main class="yt-main-content" id="ytMainContent">
+            <!-- ==============================================================
+                 PAGE 1: HOME / OVERVIEW
+                 ============================================================== -->
+            <div class="spa-page" id="pageHome">
+                <div class="home-page-container">
+                    <!-- Hero Banner -->
+                    <section class="home-hero-card">
+                        <div class="home-hero-content">
+                            <div class="hero-badge-row">
+                                <span class="hero-tag">INSTITUTIONAL DERIVATIVES INTELLIGENCE</span>
+                                <span class="hero-status-pill">● LIVE TERMINAL</span>
+                            </div>
+                            <h1 class="home-hero-title">Market Stance & Analytical Gateway</h1>
+                            <p class="home-hero-desc">
+                                Clean, dedicated workspace structured into distinct pages. Access the professional 13-column NSE Option Chain 
+                                or analyze Participant-wise Open Interest across all 6 instruments without clutter.
+                            </p>
+                        </div>
+                        <div class="home-hero-actions">
+                            <button type="button" class="btn btn-outline" data-nav-target="participant-oi">
+                                <span class="btn-icon">👥</span> Open Participant OI
+                            </button>
+                            <button type="button" class="btn btn-outline" data-nav-target="option-chain">
+                                <span class="btn-icon">📊</span> Open Option Chain
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Market Stance Overview Strip -->
+                    <section class="home-pulse-section">
+                        <div class="home-pulse-grid">
+                            <!-- Stance Verdict -->
+                            <div class="pulse-card stance-pulse-card">
+                                <div class="pulse-card-header">
+                                    <span class="pulse-icon">🔮</span>
+                                    <span class="pulse-title">NEXT-DAY MARKET STANCE</span>
+                                </div>
+                                <div class="pulse-main-val">
+                                    <h2 id="homeVerdictText">Analyzing Market Flow...</h2>
+                                    <span class="forecast-badge" id="homeVerdictBadge">CALCULATING</span>
+                                </div>
+                                <div class="sentiment-meter-mini">
+                                    <div class="meter-bar">
+                                        <div class="meter-fill" id="homeMeterFill" style="width: 50%;"></div>
+                                    </div>
+                                    <div class="meter-labels">
+                                        <span>Bearish (-100)</span>
+                                        <strong id="homeMeterScore">Score: 0</strong>
+                                        <span>Bullish (+100)</span>
+                                    </div>
+                                </div>
+                                <div class="pulse-trap-notice" id="homeTrapNotice" style="display: none;">
+                                    <span class="trap-icon">⚠️</span>
+                                    <span id="homeTrapText">Retail trap detected! Watch for short squeeze.</span>
+                                </div>
+                            </div>
+
+                            <!-- NIFTY Option Chain Snapshot -->
+                            <div class="pulse-card oc-pulse-card">
+                                <div class="pulse-card-header">
+                                    <span class="pulse-icon">📊</span>
+                                    <span class="pulse-title">NIFTY 50 OPTION METRICS</span>
+                                    <span class="pulse-live-tag">SPOT SYNC</span>
+                                </div>
+                                <div class="pulse-stats-grid">
+                                    <div class="pstat-item">
+                                        <span class="pstat-lbl">Underlying Spot</span>
+                                        <strong class="pstat-val" id="homeSpotPrice">25,057.35</strong>
+                                    </div>
+                                    <div class="pstat-item">
+                                        <span class="pstat-lbl">ATM Strike</span>
+                                        <strong class="pstat-val" id="homeAtmStrike">25,050</strong>
+                                    </div>
+                                    <div class="pstat-item">
+                                        <span class="pstat-lbl">Put-Call Ratio (PCR)</span>
+                                        <strong class="pstat-val" id="homePcrVal">0.68</strong>
+                                        <span class="pstat-sub" id="homePcrStance">Bearish / Oversold</span>
+                                    </div>
+                                    <div class="pstat-item">
+                                        <span class="pstat-lbl">Max Pain Magnet</span>
+                                        <strong class="pstat-val" id="homeMaxPain">25,050</strong>
+                                    </div>
+                                </div>
+                                <div class="pulse-card-footer">
+                                    <span>Oscillation Zone: <strong id="homeOscZone">25,000 - 25,200</strong></span>
+                                </div>
+                            </div>
+
+                            <!-- Institutional Flow Quick Stat -->
+                            <div class="pulse-card inst-pulse-card">
+                                <div class="pulse-card-header">
+                                    <span class="pulse-icon">🏦</span>
+                                    <span class="pulse-title">SMART MONEY VS RETAIL</span>
+                                </div>
+                                <div class="pulse-inst-rows">
+                                    <div class="pulse-inst-row">
+                                        <span class="inst-name">FIIs (Foreign Inst.)</span>
+                                        <strong class="inst-stance cell-green" id="homeFiiStance">Accumulating Longs</strong>
+                                    </div>
+                                    <div class="pulse-inst-row">
+                                        <span class="inst-name">Pros (Prop Desks)</span>
+                                        <strong class="inst-stance cell-green" id="homeProStance">Call Buying / Put Writing</strong>
+                                    </div>
+                                    <div class="pulse-inst-row">
+                                        <span class="inst-name">Clients (Retail)</span>
+                                        <strong class="inst-stance cell-red" id="homeClientStance">Heavily Trapped in Puts</strong>
+                                    </div>
+                                </div>
+                                <div class="pulse-card-footer">
+                                    <span>Gameplan: <strong id="homeActionShort">Buy on intraday dips above 25,000</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Two Dedicated Gateway Cards -->
+                    <section class="home-gateways-section">
+                        <div class="gateways-header">
+                            <h2>Select Dedicated Analytical Workspace</h2>
+                            <p>Each module opens in its own clean, focused page without clutter or unnecessary scrolling.</p>
+                        </div>
+
+                        <div class="gateways-grid">
+                            <!-- Gateway Card 1: Proper Option Chain -->
+                            <div class="gateway-card gateway-oc">
+                                <div class="gateway-card-top">
+                                    <div class="gateway-icon-box">📊</div>
+                                    <div class="gateway-title-box">
+                                        <span class="gateway-badge badge-oc">NSE PRO 13-COLUMN VIEW</span>
+                                        <h3>Proper Option Chain</h3>
+                                        <span class="gateway-sub">Dedicated Page: <code>/option-chain</code></span>
+                                    </div>
+                                </div>
+
+                                <div class="gateway-body">
+                                    <p class="gateway-desc">
+                                        Full-scale 13-column NSE Option Chain for NIFTY, BANKNIFTY, and FINNIFTY with 
+                                        strict Call CE on the left, Strike Price in the center, and Put PE on the right.
+                                    </p>
+
+                                    <ul class="gateway-features-list">
+                                        <li>
+                                            <span class="feat-check">✓</span>
+                                            <span><strong>In-The-Money (ITM) Golden Shading</strong> with dynamic Spot price divider</span>
+                                        </li>
+                                        <li>
+                                            <span class="feat-check">✓</span>
+                                            <span><strong>Strike Buildup Badges:</strong> Long Buildup, Short Buildup, Short Covering, Long Unwinding</span>
+                                        </li>
+                                        <li>
+                                            <span class="feat-check">✓</span>
+                                            <span><strong>Interactive Strike Buildup SVG Chart</strong> with shaded Oscillation Channel</span>
+                                        </li>
+                                        <li>
+                                            <span class="feat-check">✓</span>
+                                            <span><strong>Participant Flow Matrix:</strong> Index Calls vs Index Puts added/closed positions</span>
+                                        </li>
+                                        <li>
+                                            <span class="feat-check">✓</span>
+                                            <span><strong>Key Levels:</strong> Real-time Max Pain expiry magnet, R1/R2, and S1/S2 depth</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div class="gateway-footer">
+                                    <button type="button" class="btn btn-primary btn-gateway" data-nav-target="option-chain">
+                                        <span>Open Proper Option Chain</span>
+                                        <span class="gateway-arr">→</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Gateway Card 2: Participant-Wise OI Analyzer -->
+                            <div class="gateway-card gateway-part">
+                                <div class="gateway-card-top">
+                                    <div class="gateway-icon-box">👥</div>
+                                    <div class="gateway-title-box">
+                                        <span class="gateway-badge badge-part">6 INSTRUMENTS BREAKDOWN</span>
+                                        <h3>Participant-Wise OI Analyzer</h3>
+                                        <span class="gateway-sub">Dedicated Page: <code>/participant-oi</code></span>
+                                    </div>
+                                </div>
+
+                                <div class="gateway-body">
+                                    <p class="gateway-desc">
+                                        Dedicated institutional flow workspace tracking Client, DII, FII, and Pro open interest 
+                                        across 6 derivative instruments in strictly enforced sequence with Day-over-Day deltas.
+                                    </p>
+
+                                    <ul class="gateway-features-list">
+                                        <li>
+                                            <span class="feat-check">✓</span>
+                                            <span><strong>6 Instruments Sequence:</strong> Index Futures → Index Calls → Index Puts → Stock Futures → Stock Calls → Stock Puts</span>
+                                        </li>
+                                        <li>
+                                            <span class="feat-check">✓</span>
+                                            <span><strong>4 Participant Groups:</strong> Clients (Retail), DIIs, FIIs (Foreign Inst.), Pros</span>
+                                        </li>
+                                        <li>
+                                            <span class="feat-check">✓</span>
+                                            <span><strong>Multi-Day History:</strong> 5-day carried positions with day-over-day net changes</span>
+                                        </li>
+                                        <li>
+                                            <span class="feat-check">✓</span>
+                                            <span><strong>Institutional Sentiment Verdict:</strong> Next-day score & retail trap detection</span>
+                                        </li>
+                                        <li>
+                                            <span class="feat-check">✓</span>
+                                            <span><strong>Positions Bought / Sold Today</strong> with the 4 Golden Trading Rules</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div class="gateway-footer">
+                                    <button type="button" class="btn btn-secondary btn-gateway" data-nav-target="participant-oi">
+                                        <span>Open Participant OI Analyzer</span>
+                                        <span class="gateway-arr">→</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 4 Golden Rules & Discipline Card -->
+                    <section class="home-rules-section">
+                        <div class="home-rules-card">
+                            <div class="rules-card-header">
+                                <div class="rules-card-title">
+                                    <span class="rules-shield">🛡️</span>
+                                    <h3>The 4 Golden Trading Rules of Institutional Open Interest</h3>
+                                </div>
+                                <span class="rules-pill">DISCIPLINED EXECUTION</span>
+                            </div>
+                            <div class="rules-card-grid">
+                                <div class="rule-box">
+                                    <span class="rule-number">1</span>
+                                    <h4>Keep SL in System & Trail</h4>
+                                    <p>Never trade naked without a predefined stop loss resting in the exchange order book.</p>
+                                </div>
+                                <div class="rule-box">
+                                    <span class="rule-number">2</span>
+                                    <h4>World Market Alignment</h4>
+                                    <p>Global cues (GIFT Nifty, Nasdaq, crude) should align with your derivative positioning.</p>
+                                </div>
+                                <div class="rule-box">
+                                    <span class="rule-number">3</span>
+                                    <h4>Watch High-Impact News</h4>
+                                    <p>Central bank rate decisions or geopolitical events can overpower institutional OI setups.</p>
+                                </div>
+                                <div class="rule-box">
+                                    <span class="rule-number">4</span>
+                                    <h4>Price Action Confirmation</h4>
+                                    <p>OI signals institutional bias; only enter when price action breaks key 5m/15m chart levels.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- ==============================================================
+                 PAGE 2: DEDICATED PROPER OPTION CHAIN (13-COLUMN)
+                 ============================================================== -->
+            <div class="spa-page" id="pageOptionChain" style="display: none;">
+                <div class="option-chain-page-container">
+                    <!-- Top Control Bar -->
+                    <div class="oc-page-header">
+                        <div class="oc-header-left">
+                            <div class="oc-page-title-box">
+                                <span class="oc-title-icon">📊</span>
+                                <div>
+                                    <h1 class="oc-page-title">Proper Option Chain (NSE Pro View)</h1>
+                                    <p class="oc-page-sub">Calls (CE) on Left • Strike in Center • Puts (PE) on Right • Golden ITM Tinting</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="oc-header-right">
+                            <!-- Symbol Pills -->
+                            <div class="oc-symbol-pills" id="ocMainSymbolPills">
+                                <button type="button" class="oc-pill-btn active" data-symbol="NIFTY">NIFTY 50</button>
+                                <button type="button" class="oc-pill-btn" data-symbol="BANKNIFTY">BANK NIFTY</button>
+                                <button type="button" class="oc-pill-btn" data-symbol="FINNIFTY">FIN NIFTY</button>
+                            </div>
+
+                            <!-- Expiry Selector -->
+                            <div class="oc-ctrl-item">
+                                <label for="ocMainExpirySelect">EXPIRY:</label>
+                                <select id="ocMainExpirySelect" class="oc-select"></select>
+                            </div>
+
+                            <!-- Strike Range Selector -->
+                            <div class="oc-ctrl-item">
+                                <label for="ocMainWindowSelect">STRIKES:</label>
+                                <select id="ocMainWindowSelect" class="oc-select">
+                                    <option value="10">ATM ± 10</option>
+                                    <option value="15" selected>ATM ± 15</option>
+                                    <option value="25">ATM ± 25</option>
+                                    <option value="0">All Strikes</option>
+                                </select>
+                            </div>
+
+                            <!-- Refresh Button -->
+                            <button type="button" class="btn btn-outline btn-sm" id="btnMainRefreshOc" title="Reload Option Chain from NSE">
+                                🔄 Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Market Intelligence Metrics Strip -->
+                    <div class="oc-metrics-strip" id="ocMainMetricsStrip">
+                        <div class="oc-metric-card spot-card">
+                            <span class="oc-metric-lbl">UNDERLYING SPOT</span>
+                            <strong class="oc-metric-val" id="ocMainSpotPrice">25,057.35</strong>
+                            <span class="oc-metric-sub" id="ocMainAtmStrike">ATM: 25,050</span>
+                        </div>
+                        <div class="oc-metric-card pcr-card">
+                            <span class="oc-metric-lbl">PUT-CALL RATIO (PCR)</span>
+                            <strong class="oc-metric-val" id="ocMainPcrVal">0.68</strong>
+                            <span class="oc-metric-sub" id="ocMainPcrStance">Bearish / Oversold</span>
+                        </div>
+                        <div class="oc-metric-card maxpain-card">
+                            <span class="oc-metric-lbl">MAX PAIN STRIKE</span>
+                            <strong class="oc-metric-val" id="ocMainMaxPainVal">25,050</strong>
+                            <span class="oc-metric-sub">Expiry Magnet Level</span>
+                        </div>
+                        <div class="oc-metric-card res-card">
+                            <span class="oc-metric-lbl">MAJOR RESISTANCE (R1 & R2)</span>
+                            <strong class="oc-metric-val" id="ocMainResStrike">25,200 (R1)</strong>
+                            <span class="oc-metric-sub" id="ocMainResOi">R2: 25,300 (1,25,000 OI)</span>
+                        </div>
+                        <div class="oc-metric-card sup-card">
+                            <span class="oc-metric-lbl">MAJOR SUPPORT (S1 & S2)</span>
+                            <strong class="oc-metric-val" id="ocMainSupStrike">25,000 (S1)</strong>
+                            <span class="oc-metric-sub" id="ocMainSupOi">S2: 24,900 (1,10,000 OI)</span>
+                        </div>
+                        <div class="oc-metric-card osc-card">
+                            <span class="oc-metric-lbl">OSCILLATION ZONE</span>
+                            <strong class="oc-metric-val" id="ocMainOscZoneVal">25,000 - 25,200</strong>
+                            <span class="oc-metric-sub" id="ocMainOscZoneSub">Expected Range Channel</span>
+                        </div>
+                    </div>
+
+                    <!-- Subview Switcher Tabs -->
+                    <div class="oc-subview-nav-bar">
+                        <div class="oc-subview-tabs" id="ocSubViewTabs">
+                            <button type="button" class="subview-tab-btn active" data-subview="table">
+                                <span>📋 Option Chain Table</span>
+                            </button>
+                            <button type="button" class="subview-tab-btn" data-subview="chart">
+                                <span>📈 Strike Buildup Chart</span>
+                            </button>
+                            <button type="button" class="subview-tab-btn" data-subview="synergy">
+                                <span>⚖️ Participant Synergy & S&R</span>
+                            </button>
+                            <button type="button" class="subview-tab-btn" data-subview="all">
+                                <span>🔲 All Views (Stacked)</span>
+                            </button>
+                        </div>
+                        <div class="oc-status-pill-sync">
+                            <span class="sync-dot"></span>
+                            <span>Real-time NSE Archive Data</span>
+                        </div>
+                    </div>
+
+                    <!-- Subview 1: Option Chain Table -->
+                    <div class="oc-subview-panel active" id="subviewTable">
+                        <div class="oc-table-wrapper oc-table-fullpage">
+                            <div class="oc-table-legend">
+                                <span class="legend-itm-call"><span class="legend-swatch"></span> In-The-Money (ITM) Calls</span>
+                                <span class="legend-itm-put"><span class="legend-swatch"></span> In-The-Money (ITM) Puts</span>
+                                <span class="legend-atm"><span class="legend-swatch"></span> At-The-Money (ATM)</span>
+                                <span class="legend-bar-ce"><span class="legend-swatch"></span> Call OI Depth</span>
+                                <span class="legend-bar-pe"><span class="legend-swatch"></span> Put OI Depth</span>
+                                <span class="legend-osc"><span class="legend-swatch"></span> Oscillation Zone</span>
+                            </div>
+
+                            <div class="oc-table-scroll-container">
+                                <table class="oc-table oc-table-pro" id="ocMainTable">
+                                    <thead>
+                                        <tr class="oc-th-super">
+                                            <th colspan="6" class="oc-th-calls">CALLS (CE)</th>
+                                            <th class="oc-th-strike">STRIKE PRICE</th>
+                                            <th colspan="6" class="oc-th-puts">PUTS (PE)</th>
+                                        </tr>
+                                        <tr class="oc-th-sub">
+                                            <th class="col-oi">OI (Contracts)</th>
+                                            <th class="col-chg">Chg in OI</th>
+                                            <th class="col-buildup">Buildup</th>
+                                            <th class="col-vol">Volume</th>
+                                            <th class="col-ltp">LTP (₹)</th>
+                                            <th class="col-chg-p">Chg (₹)</th>
+                                            <th class="col-strike-center">Strike Price</th>
+                                            <th class="col-chg-p">Chg (₹)</th>
+                                            <th class="col-ltp">LTP (₹)</th>
+                                            <th class="col-vol">Volume</th>
+                                            <th class="col-buildup">Buildup</th>
+                                            <th class="col-chg">Chg in OI</th>
+                                            <th class="col-oi">OI (Contracts)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ocMainTbody">
+                                        <!-- Dynamically populated -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subview 2: Strike Buildup Chart -->
+                    <div class="oc-subview-panel" id="subviewChart" style="display: none;">
+                        <div class="oc-chart-section">
+                            <div class="oc-chart-header">
+                                <div class="oc-chart-title-box">
+                                    <span class="chart-icon">📈</span>
+                                    <div>
+                                        <h3>NSE Option Chain Strike Buildup & Oscillation Chart</h3>
+                                        <span class="oc-chart-sub">Strike-by-strike Call Writing/Unwinding vs Put Writing/Unwinding with Shaded Oscillation Corridor</span>
+                                    </div>
+                                </div>
+                                <div class="oc-chart-legend">
+                                    <span class="legend-badge leg-call-short"><span class="badge-dot"></span> Call Shorting (Resistance)</span>
+                                    <span class="legend-badge leg-call-add"><span class="badge-dot"></span> Call Adding (Long)</span>
+                                    <span class="legend-badge leg-call-unwind"><span class="badge-dot"></span> Call Unwinding</span>
+                                    <span class="legend-badge leg-put-write"><span class="badge-dot"></span> Put Writing (Support)</span>
+                                    <span class="legend-badge leg-put-unwind"><span class="badge-dot"></span> Put Unwinding</span>
+                                    <span class="legend-badge leg-osc"><span class="badge-dot"></span> Oscillation Zone</span>
+                                </div>
+                            </div>
+
+                            <div class="oc-chart-container">
+                                <svg id="ocMainChartSvg" class="oc-svg-chart" viewBox="0 0 1000 320" preserveAspectRatio="xMidYMid meet"></svg>
+                                <div class="oc-chart-tooltip" id="ocMainChartTooltip" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subview 3: Participant Flow Matrix & Institutional Synergy -->
+                    <div class="oc-subview-panel" id="subviewSynergy" style="display: none;">
+                        <!-- 4-Way Participant Flow Matrix -->
+                        <div class="oc-flow-section">
+                            <div class="oc-section-header">
+                                <div class="oc-section-title">
+                                    <span class="sec-icon">⚖️</span>
+                                    <h3>Participant Position Breakdown (Index Calls vs Index Puts)</h3>
+                                </div>
+                                <span class="sec-sub">Added/Closed Longs & Shorts for Clients, DIIs, FIIs, and Pros</span>
+                            </div>
+                            <div class="oc-matrix-wrapper">
+                                <table class="oc-matrix-table" id="ocMainParticipantMatrixTable">
+                                    <thead>
+                                        <tr class="oc-matrix-super">
+                                            <th rowspan="2" class="th-pname">Participant</th>
+                                            <th colspan="5" class="th-group-call">INDEX CALLS (CE)</th>
+                                            <th colspan="5" class="th-group-put">INDEX PUTS (PE)</th>
+                                        </tr>
+                                        <tr class="oc-matrix-sub">
+                                            <th class="col-add-l">Added Long</th>
+                                            <th class="col-cls-l">Closed Long</th>
+                                            <th class="col-add-s">Added Short</th>
+                                            <th class="col-cls-s">Closed Short</th>
+                                            <th class="col-net">Net Position</th>
+                                            <th class="col-add-l">Added Long</th>
+                                            <th class="col-cls-l">Closed Long</th>
+                                            <th class="col-add-s">Added Short</th>
+                                            <th class="col-cls-s">Closed Short</th>
+                                            <th class="col-net">Net Position</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ocMainParticipantMatrixTbody">
+                                        <!-- Populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Synergy Cards & Written Strategy -->
+                        <div class="oc-synergy-section">
+                            <div class="oc-synergy-header">
+                                <div class="oc-synergy-title">
+                                    <span class="synergy-flame">🔥</span>
+                                    <h3>Synergy with Participant Data (The Real Power)</h3>
+                                </div>
+                                <span class="oc-synergy-range" id="ocMainExpectedRange">Expected Range: 25,000 - 25,200</span>
+                            </div>
+                            <div class="oc-synergy-grid" id="ocMainSynergyCards">
+                                <!-- Populated dynamically -->
+                            </div>
+
+                            <div class="oc-written-box">
+                                <div class="oc-written-header">
+                                    <span class="written-icon">📝</span>
+                                    <h4>Next-Day Institutional Strategy & Oscillation Zone Breakdown</h4>
+                                </div>
+                                <div class="oc-written-body" id="ocMainWrittenBody">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==============================================================
+                 PAGE 3: DEDICATED PARTICIPANT-WISE OI ANALYZER
+                 ============================================================== -->
+            <div class="spa-page" id="pageParticipantOi" style="display: none;">
+                <div class="participant-page-container">
+                    <!-- Top Date Control Center & Action Bar -->
+                    <div class="part-page-header">
+                        <div class="part-header-left">
+                            <div class="part-title-box">
+                                <span class="part-title-icon">👥</span>
+                                <div>
+                                    <h1 class="part-page-title">Participant-Wise OI Analyzer</h1>
+                                    <p class="part-page-sub">Client • DII • FII • Pro Open Interest Breakdown across 6 Derivative Instruments</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="part-header-right">
+                            <div class="date-control-card">
+                                <span class="ctrl-tag">📅 TRADING DATE:</span>
+                                <input type="date" id="mainDateInput" class="ctrl-date-input" value="2026-10-30" title="Click to change trading date">
+                                
+                                <span class="ctrl-sep">|</span>
+                                
+                                <label for="mainDaysSelect" class="ctrl-tag">LOOKBACK:</label>
+                                <select id="mainDaysSelect" class="ctrl-select" title="Choose number of previous trading days to compare">
+                                    <option value="5" selected>5 Days</option>
+                                    <option value="4">4 Days</option>
+                                    <option value="3">3 Days</option>
+                                    <option value="2">2 Days</option>
+                                </select>
+
+                                <button type="button" class="btn btn-fetch-primary" id="btnMainFetch" title="Auto-fetch data from NSE for this date">
+                                    <span class="btn-icon">⚡</span> Fetch from NSE
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Notification Bar -->
+                    <div class="sub-header-bar">
+                        <div class="sub-bar-container">
+                            <div class="active-date-wrap">
+                                <span class="active-date-indicator">Active Date: <strong id="activeDateDisplay">2026-10-30</strong></span>
+                            </div>
+
+                            <div class="status-indicator-box" id="statusBox" style="display: none;">
+                                <span class="status-icon" id="statusIcon">🔄</span>
+                                <span class="status-text" id="statusText">Ready</span>
+                                <button type="button" class="btn-toggle-logs" id="btnToggleLogs">Logs ▼</button>
+                            </div>
+                        </div>
+
+                        <!-- Collapsible Fetch Logs Drawer -->
+                        <div class="fetch-logs-drawer" id="fetchLogsDrawer" style="display: none;">
+                            <ul id="fetchLogsUl"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Next-Day Market Intelligence & Trap Forecast Banner -->
+                    <section class="forecast-banner" id="forecastSection">
+                        <div class="forecast-header">
+                            <div class="forecast-title-wrap">
+                                <span class="forecast-tag">NEXT-DAY MARKET OUTLOOK & SENTIMENT FORECAST</span>
+                                <h2 class="forecast-verdict" id="forecastVerdict">Analyzing derivatives positions...</h2>
+                            </div>
+                            <div class="forecast-badge-box">
+                                <span class="forecast-badge" id="forecastBadge">CALCULATING</span>
+                                <div class="sentiment-meter">
+                                    <div class="meter-bar">
+                                        <div class="meter-fill" id="meterFill" style="width: 50%;"></div>
+                                    </div>
+                                    <div class="meter-labels">
+                                        <span>Extreme Bearish (-100)</span>
+                                        <span id="meterScore">Score: 0</span>
+                                        <span>Extreme Bullish (+100)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trap Alert Box -->
+                        <div class="trap-alert-box" id="trapAlertBox" style="display: none;">
+                            <span class="alert-icon">⚠️</span>
+                            <div class="alert-content">
+                                <strong class="alert-title">PARTICIPANT TRAP DETECTED:</strong>
+                                <span id="trapAlertText">Clients are heavily positioned in Puts while Smart Money is writing Puts and covering Calls. High probability of Short Squeeze.</span>
+                            </div>
+                        </div>
+
+                        <!-- Strategy Grid -->
+                        <div class="forecast-grid">
+                            <div class="forecast-card action-card">
+                                <div class="card-title">🎯 Next-Day Trading Gameplan</div>
+                                <p class="card-desc" id="nextDayActionText">Loading actionable trading setup...</p>
+                            </div>
+                            <div class="forecast-card fii-card">
+                                <div class="card-title">🏦 FII (Foreign Inst.) Stance</div>
+                                <div class="card-stat" id="fiiActionStat">-</div>
+                                <p class="card-desc" id="fiiActionDesc">-</p>
+                            </div>
+                            <div class="forecast-card pro-card">
+                                <div class="card-title">🏢 Pro Desk (Prop Desks) Stance</div>
+                                <div class="card-stat" id="proActionStat">-</div>
+                                <p class="card-desc" id="proActionDesc">-</p>
+                            </div>
+                            <div class="forecast-card client-card">
+                                <div class="card-title">👤 Clients (Retail) Stance</div>
+                                <div class="card-stat" id="clientActionStat">-</div>
+                                <p class="card-desc" id="clientActionDesc">-</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Main Workspace: 6 Instrument Tables in Strict Sequence & Side Panel -->
+                    <div class="dashboard-layout">
+                        <!-- Left & Center: 6 Instrument Breakdown Tables in Exact Sequence -->
+                        <div class="instruments-container" id="instrumentsContainer">
+                            <div class="loading-state">
+                                <div class="spinner"></div>
+                                <p>Processing Participant-wise Open Interest data...</p>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Participant Summary & Rules Panel -->
+                        <div class="side-panel">
+                            <!-- Summary of Positions Bought / Sold Today in Exact Sequence -->
+                            <div class="panel-box positions-summary-box">
+                                <div class="panel-header">
+                                    <h3>Positions Bought / Sold Today</h3>
+                                    <span class="panel-sub">Net activity by participant</span>
+                                </div>
+
+                                <div class="participant-cards-wrap" id="participantSummaryWrap">
+                                    <!-- Filled dynamically -->
+                                </div>
+                            </div>
+
+                            <!-- 4 Golden Trading Rules -->
+                            <div class="panel-box rules-box" id="fourGoldenRulesBox">
+                                <div class="panel-header rules-header">
+                                    <h3>🛡️ 4 Golden Trading Rules</h3>
+                                    <span class="badge-rules">Strict Discipline</span>
+                                </div>
+                                <ul class="rules-list">
+                                    <li>
+                                        <span class="rule-num">1</span>
+                                        <div><strong>Keep SL in System & Trail:</strong> Never trade naked without predefined stop loss in order book.</div>
+                                    </li>
+                                    <li>
+                                        <span class="rule-num">2</span>
+                                        <div><strong>World Market Trend Alignment:</strong> Global cues (GIFT Nifty, US markets) should not conflict with direction.</div>
+                                    </li>
+                                    <li>
+                                        <span class="rule-num">3</span>
+                                        <div><strong>Watch Impacting News:</strong> RBI/Fed announcements or geopolitical news can trigger sudden gamma shocks.</div>
+                                    </li>
+                                    <li>
+                                        <span class="rule-num">4</span>
+                                        <div><strong>Price Action Confirmation:</strong> Trade only when open interest bias confirms on 5m/15m chart levels.</div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Quick Reading Guide -->
+                            <div class="panel-box guide-box">
+                                <div class="panel-header">
+                                    <h3>📖 Quick Reading Guide</h3>
+                                </div>
+                                <div class="guide-content">
+                                    <div class="guide-item">
+                                        <span class="color-dot green"></span>
+                                        <span><strong>Added Longs / Closed Shorts:</strong> Bullish institutional activity</span>
+                                    </div>
+                                    <div class="guide-item">
+                                        <span class="color-dot red"></span>
+                                        <span><strong>Closed Longs / Added Shorts:</strong> Bearish institutional activity</span>
+                                    </div>
+                                    <div class="guide-item">
+                                        <span class="color-dot green"></span>
+                                        <span><strong>Bought Net:</strong> Net contract accumulation</span>
+                                    </div>
+                                    <div class="guide-item">
+                                        <span class="color-dot red"></span>
+                                        <span><strong>Sold Net:</strong> Net contract distribution</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals: Upload, Paste, Samples, Rules, Guide -->
+    <!-- Modal: File Upload -->
+    <div class="modal-overlay" id="uploadModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📁 Upload Participant-Wise OI Files</h3>
+                <button type="button" class="btn-close" id="btnCloseUpload">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">
+                    Upload last <strong>1 to 5 days</strong> of daily NSE Participant Open Interest reports (<strong>PDF</strong> or <strong>CSV</strong>). 
+                    The analyzer will automatically parse dates, extract Client/DII/FII/Pro figures, compute day-over-day changes, and forecast next day sentiment.
+                </p>
+                <div class="drop-zone" id="dropZone">
+                    <span class="drop-icon">📤</span>
+                    <p class="drop-text">Drag & drop NSE <code>.pdf</code> or <code>.csv</code> files here, or <strong>browse files</strong></p>
+                    <input type="file" id="fileInput" multiple accept=".pdf,.csv,.txt,.tsv" style="display:none">
+                </div>
+                <div class="selected-files-list" id="selectedFilesList"></div>
+
+                <div class="quick-sample-tip">
+                    <span>💡 Don't have NSE PDFs on hand?</span>
+                    <button type="button" class="btn-link" id="btnLoadSamplesInsideModal">Click here to auto-load 5-day sample PDFs</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" id="btnCancelUpload">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btnSubmitUpload" disabled>Analyze Uploaded Files</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Paste Text -->
+    <div class="modal-overlay" id="pasteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 Paste Raw NSE OI Data</h3>
+                <button type="button" class="btn-close" id="btnClosePaste">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">
+                    Paste raw tabular text, Excel copy-paste (tab-separated), or CSV lines:
+                </p>
+                <div class="form-group">
+                    <label for="pasteDate">Date (Optional):</label>
+                    <input type="date" id="pasteDate" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label for="pasteArea">Raw Text / Excel / CSV Data:</label>
+                    <textarea id="pasteArea" class="textarea-field" rows="8" placeholder="Client Type&#9;Future Index Long&#9;Future Index Short...&#10;Client&#9;490913&#9;300389...&#10;DII&#9;116664&#9;183714...&#10;FII&#9;183529&#9;333716...&#10;Pro&#9;104649&#9;77936..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" id="btnCancelPaste">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btnSubmitPaste">Analyze Pasted Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Sample Files Download -->
+    </div>
+
+    <!-- Modal: 4 Golden Rules Quick Reference -->
+    <div class="modal-overlay" id="rulesModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🛡️ 4 Golden Trading Rules of Institutional OI</h3>
+                <button type="button" class="btn-close" id="btnCloseRules">&times;</button>
+            </div>
+            <div class="modal-body">
+                <ul class="rules-list rules-list-modal">
+                    <li>
+                        <span class="rule-num">1</span>
+                        <div><strong>Keep SL in System & Trail:</strong> Never trade naked without predefined stop loss in order book. Protect capital before seeking profits.</div>
+                    </li>
+                    <li>
+                        <span class="rule-num">2</span>
+                        <div><strong>World Market Trend Alignment:</strong> Global cues (GIFT Nifty, US tech indices, crude) should not conflict with direction. Avoid fighting macroeconomic tides.</div>
+                    </li>
+                    <li>
+                        <span class="rule-num">3</span>
+                        <div><strong>Watch Impacting News:</strong> RBI/Fed announcements or geopolitical news can trigger sudden gamma shocks. Respect high-volatility event windows.</div>
+                    </li>
+                    <li>
+                        <span class="rule-num">4</span>
+                        <div><strong>Price Action Confirmation:</strong> Trade only when open interest bias confirms on 5m/15m chart levels. Open Interest indicates bias; Price Action triggers entries.</div>
+                    </li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnCloseRules2">Understood</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Quick Reading Guide -->
+    <div class="modal-overlay" id="guideModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📖 Quick Reading Guide & Institutional Logic</h3>
+                <button type="button" class="btn-close" id="btnCloseGuide">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="guide-content guide-modal-content">
+                    <div class="guide-item">
+                        <span class="color-dot green"></span>
+                        <span><strong>Added Longs / Closed Shorts:</strong> Bullish institutional activity (Long Buildup / Short Covering)</span>
+                    </div>
+                    <div class="guide-item">
+                        <span class="color-dot red"></span>
+                        <span><strong>Closed Longs / Added Shorts:</strong> Bearish institutional activity (Long Unwinding / Short Buildup)</span>
+                    </div>
+                    <div class="guide-item">
+                        <span class="color-dot green"></span>
+                        <span><strong>Bought Net:</strong> Net contract accumulation today</span>
+                    </div>
+                    <div class="guide-item">
+                        <span class="color-dot red"></span>
+                        <span><strong>Sold Net:</strong> Net contract distribution today</span>
+                    </div>
+                    <div class="guide-item">
+                        <span class="color-dot amber"></span>
+                        <span><strong>In-The-Money (ITM) Golden Tint:</strong> High intrinsic value contracts with real institutional conviction</span>
+                    </div>
+                    <div class="guide-item">
+                        <span class="color-dot purple"></span>
+                        <span><strong>Retail Trap Alert:</strong> When Retail Clients take massive one-sided positions opposite to FII & Pro desks</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnCloseGuide2">Got It</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js?v={{ v }}"></script>
+</body>
+</html>
