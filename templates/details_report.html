@@ -1,0 +1,830 @@
+{% extends "base.html" %}
+
+{% block title %}Details Report: Institutional Derivatives Intelligence & Execution Playbook | NSE Derivatives{% endblock %}
+
+{% block content %}
+<div class="details-report-page-container" id="detailsReportPage">
+    <!-- Top Action & Filter Bar (Hidden in Print) -->
+    <div class="report-action-bar no-print">
+        <div class="bar-left">
+            <div class="report-badge-title">
+                <span class="report-icon">📑</span>
+                <div>
+                    <h1 class="report-page-title">Institutional Details Report: Participant-Wise OI & Option Chain Mapped Report</h1>
+                    <p class="report-page-sub">Pre-Market Command Center • Unified 4×6 Heatmap • 5-Pillar Confluence • Timed 09:00-15:30 Protocol</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bar-right">
+            <!-- Symbol Selector -->
+            <div class="report-symbol-pills" id="repSymbolPills">
+                <button type="button" class="rep-pill-btn active" data-symbol="NIFTY">NIFTY 50</button>
+                <button type="button" class="rep-pill-btn" data-symbol="BANKNIFTY">BANK NIFTY</button>
+                <button type="button" class="rep-pill-btn" data-symbol="FINNIFTY">FIN NIFTY</button>
+            </div>
+
+            <!-- Trading Date Selector -->
+            <div class="rep-ctrl-item">
+                <label for="repDateInput">📅 SESSION:</label>
+                <input type="date" id="repDateInput" class="rep-date-input" value="2026-10-30" title="Click to change Trading Date">
+            </div>
+
+            <!-- Quick Date Presets -->
+            <div style="display: inline-flex; align-items: center; gap: 4px;">
+                <button type="button" class="btn btn-sm date-preset-btn" data-preset="2026-10-30" style="padding: 6px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); color: #cbd5e1;" title="Latest Verified Live Session">⚡ 30 Oct (Latest)</button>
+            </div>
+
+            <!-- Copy Summary Button -->
+            <button type="button" class="btn btn-outline btn-sm" id="btnCopyReportSummary" title="Copy 2-Minute Executive Summary to Clipboard">
+                <span class="btn-icon">📋</span> Copy Summary
+            </button>
+
+            <!-- Print / PDF Button -->
+            <button type="button" class="btn btn-primary btn-sm" id="btnPrintReport" title="Print formal desk memo or Save as PDF">
+                <span class="btn-icon">🖨️</span> Print / Save PDF
+            </button>
+
+            <!-- Refresh Button -->
+            <button type="button" class="btn btn-outline btn-sm" id="btnRefreshReport" title="Reload Analysis">
+                🔄
+            </button>
+        </div>
+    </div>
+
+    <!-- Universal Cross-Page Navigation Strip -->
+    <div class="universal-nav-strip">
+        <span class="uns-label">⚡ JUMP TO VIEW:</span>
+        <a href="/pipeline" class="uns-link">
+            <span class="uns-icon">⚡</span> 5-Data Pipeline <span class="uns-badge" style="background: rgba(168, 85, 247, 0.25); color: #c084fc; border-color: rgba(168, 85, 247, 0.4);">5 DATA</span>
+        </a>
+        <a href="/participant-oi" class="uns-link {% if active_page == 'participant_oi' %}active{% endif %}">
+            <span class="uns-icon">👥</span> Participant-Wise OI Analyzer
+        </a>
+        <a href="/option-chain" class="uns-link {% if active_page == 'option_chain' %}active{% endif %}">
+            <span class="uns-icon">📊</span> Proper Option Chain (NSE Pro View)
+        </a>
+        <a href="/details-report" class="uns-link {% if active_page == 'details_report' %}active{% endif %}">
+            <span class="uns-icon">📑</span> Institutional Details Report
+        </a>
+        <a href="/option-selling" class="uns-link {% if active_page == 'option_selling' %}active{% endif %}">
+            <span class="uns-icon">🛡️</span> Option Selling Advisory <span class="uns-badge">PRO</span>
+        </a>
+    </div>
+
+    <!-- Sticky Quick-Jump Navigation Bar (Hidden in Print) -->
+    <nav class="report-quicknav-bar no-print">
+        <span class="qn-lbl">QUICK JUMP:</span>
+        <div class="qn-links-wrap">
+            <a href="#modCommandCenter" class="qn-link active"><span class="qn-dot">●</span> ⚡ 9:15 AM Game Plan</a>
+            <a href="#modHeatmap" class="qn-link"><span class="qn-dot">●</span> 📊 4×6 Net Heatmap</a>
+            <a href="#modFivePillars" class="qn-link"><span class="qn-dot">●</span> 🧭 5-Pillar Confluence</a>
+            <a href="#modTimedProtocol" class="qn-link"><span class="qn-dot">●</span> ⏰ Timed 09:00-15:30 Playbook</a>
+            <a href="#modScenarios" class="qn-link"><span class="qn-dot">●</span> 🎯 3 Action Scenarios</a>
+            <a href="#modSegregated" class="qn-link"><span class="qn-dot">●</span> 📑 6 Segregated Instruments</a>
+            <a href="#modDossiers" class="qn-link"><span class="qn-dot">●</span> 👤 Participant Dossiers</a>
+            <a href="#modOptionSelling" class="qn-link"><span class="qn-dot">●</span> 🛡️ Option Selling Advisory</a>
+        </div>
+    </nav>
+
+    <!-- Printable Formal Memo Header (Visible only in Print) -->
+    <div class="print-memo-header print-only">
+        <div class="memo-top">
+            <div class="memo-org">
+                <h2>NSE DERIVATIVES INTELLIGENCE GROUP</h2>
+                <p>INSTITUTIONAL RISK & QUANTITATIVE FLOW DESK</p>
+            </div>
+            <div class="memo-meta">
+                <p><strong>SECURITY:</strong> <span class="print-symbol">NIFTY 50</span></p>
+                <p><strong>SESSION DATE:</strong> <span class="print-date">2026-10-30</span></p>
+            </div>
+        </div>
+        <div class="memo-divider"></div>
+        <div class="memo-title-block">
+            <h3>DAILY DERIVATIVE INTELLIGENCE & NEXT-DAY EXECUTION BRIEFING</h3>
+            <p class="memo-confidential">CONFIDENTIAL • FOR TRADING DESK EXECUTION ONLY</p>
+        </div>
+    </div>
+
+    <!-- Loading State Placeholder -->
+    <div class="report-loading-overlay" id="reportLoadingOverlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Synthesizing Participant Flows, Option Chain Microstructure & 5-Pillar Confluence...</p>
+    </div>
+
+    <!-- Main Report Body Container -->
+    <div class="report-content-body" id="reportContentBody">
+
+        <!-- Top Market Snapshot Strip -->
+        <section class="report-snapshot-strip">
+            <div class="snapshot-card spot-card">
+                <span class="snap-lbl">UNDERLYING SPOT</span>
+                <strong class="snap-val" id="repSpotPrice">25,057.35</strong>
+                <span class="snap-sub" id="repAtmStrike">ATM Strike: 25,050</span>
+            </div>
+            <div class="snapshot-card maxpain-card">
+                <span class="snap-lbl">MAX PAIN GRAVITY</span>
+                <strong class="snap-val text-amber" id="repMaxPain">25,050</strong>
+                <span class="snap-sub">Pinning Sweet Spot</span>
+            </div>
+            <div class="snapshot-card pcr-card">
+                <span class="snap-lbl">PUT-CALL RATIO (PCR)</span>
+                <strong class="snap-val" id="repPcr">0.56</strong>
+                <span class="pcr-badge" id="repPcrStance">Oversold</span>
+            </div>
+            <div class="snapshot-card stance-card">
+                <span class="snap-lbl">MASTER DIRECTIONAL STANCE</span>
+                <strong class="snap-val text-green" id="repSnapStance">DEFENSIVE BULLISH FLOOR</strong>
+                <span class="snap-sub" id="repSnapRegime">Short Squeeze Setup</span>
+            </div>
+            <div class="snapshot-card conf-card">
+                <span class="snap-lbl">INSTITUTIONAL CONVICTION</span>
+                <strong class="snap-val" id="repSnapConfidence">84%</strong>
+                <span class="snap-sub" id="repSnapScoreLabel">Composite Score: 78/100</span>
+            </div>
+        </section>
+
+
+        <!-- ========================================================================= -->
+        <!-- MODULE 1: PRE-MARKET EXECUTIVE COMMAND CENTER                             -->
+        <!-- ========================================================================= -->
+        <section class="report-module-container" id="modCommandCenter">
+            <div class="module-header-card">
+                <div class="module-header-left">
+                    <span class="module-num-pill">MODULE 01 • PRE-MARKET COMMAND</span>
+                    <h2 class="module-title">Pre-Market Executive Command Center & Opening Directives</h2>
+                    <p class="module-desc">High-conviction synthesis: Master Stance, Invalidation Trigger, 9:15 AM Game Plan, and Key Levels</p>
+                </div>
+            </div>
+
+            <!-- Master Stance Hero Card -->
+            <div class="report-card exec-command-card">
+                <div class="exec-card-top">
+                    <div class="exec-meta-left">
+                        <span class="report-chip-pill" id="repRegimeTag">SHORT SQUEEZE SETUP</span>
+                        <span class="confidence-pill" id="repConfidencePill">
+                            <span class="conf-dot">●</span> 84% Institutional Conviction
+                        </span>
+                        <span class="session-chip" id="repActiveSessionChip">Session: 2026-10-30</span>
+                    </div>
+                </div>
+
+                <div class="exec-verdict-box" id="repVerdictBox">
+                    <div class="verdict-lead">
+                        <span class="verdict-icon">⚡</span>
+                        <div class="verdict-headings">
+                            <span class="verdict-label">MASTER NEXT-DAY MARKET STANCE</span>
+                            <h2 class="verdict-title text-red" id="repMasterStance">OVERHEAD BEARISH SUPPLY WALL</h2>
+                        </div>
+                    </div>
+                    <p class="verdict-narrative" id="repNextDayVerdict">
+                        Smart Money (FIIs holding -157,669 short index futures and PRO desks selling calls) have constructed an impenetrable overhead supply ceiling at 25,200 (R1). Together, institutional players sold net Calls and bought net Puts. In sharp contrast, Retail Clients are critically trapped holding +132,815 long Calls. In Indian derivative microstructure, market makers aggressively drive prices to bleed trapped retail call buyers. Any morning uptick towards 25,050 - 25,200 will meet heavy institutional call writing and rejection, forcing spot to test downside support at 25,000.
+                    </p>
+
+                    <!-- Invalidation Alert Banner -->
+                    <div class="invalidation-alert-banner">
+                        <div class="iab-icon">🚨</div>
+                        <div class="iab-body">
+                            <strong>STRICT THESIS INVALIDATION LEVEL (EXIT / ADJUSTMENT TRIGGER):</strong>
+                            <span id="repInvalidationTrigger">Decisive 15-minute close above R1 Resistance (25,200) with sustained buying volume</span>
+                        </div>
+                    </div>
+
+                    <!-- Alignment Strip -->
+                    <div class="alignment-strip">
+                        <div class="align-col align-smart">
+                            <span class="align-icon">🏦</span>
+                            <div>
+                                <strong>Smart Money Alignment (FII + PRO Desks):</strong>
+                                <p id="repSmartAlignment">Jointly running net short delta (sold net Calls, bought net Puts; FII holding -157,669 short Index Futures).</p>
+                            </div>
+                        </div>
+                        <div class="align-col align-retail">
+                            <span class="align-icon">⚠️</span>
+                            <div>
+                                <strong>Retail Sentiment Trap Trigger (Clients):</strong>
+                                <p id="repRetailAlignment">Critically trapped in +132,815 net long Calls and short Puts (Contrarian Bearish Fuel).</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3-Phase Next-Day Intraday Trend Roadmap -->
+                    <div class="trend-phases-container" style="margin-top: 18px; padding-top: 16px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                        <div class="trend-phases-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                            <span class="tph-icon" style="font-size: 16px;">🧭</span>
+                            <strong style="font-size: 13px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px;">Next-Day Intraday Market Trajectory (3 Time Horizons)</strong>
+                        </div>
+                        <div class="trend-phases-grid">
+                            <div class="trend-phase-col tp-opening">
+                                <div class="tp-head">
+                                    <span class="tp-time">09:15 - 10:00 AM</span>
+                                    <span class="tp-tag" id="repTrendOpeningTag">Opening Auction</span>
+                                </div>
+                                <h4 class="tp-title">Phase 1: Initial Balance & Traps</h4>
+                                <p class="tp-desc" id="repTrendOpening">Expect a subdued or gap-down opening. Morning bounce attempts towards ATM (25,050) will meet heavy institutional call writing and rejection near 25,170.</p>
+                            </div>
+                            <div class="trend-phase-col tp-intraday">
+                                <div class="tp-head">
+                                    <span class="tp-time">10:00 - 13:30 PM</span>
+                                    <span class="tp-tag" id="repTrendIntradayTag">Midday Drift</span>
+                                </div>
+                                <h4 class="tp-title">Phase 2: Strike Defense & VWAP</h4>
+                                <p class="tp-desc" id="repTrendIntraday">Index trades persistently below VWAP. Institutional algorithms roll down call writing strikes, maintaining relentless downward pressure.</p>
+                            </div>
+                            <div class="trend-phase-col tp-closing">
+                                <div class="tp-head">
+                                    <span class="tp-time">13:30 - 15:30 PM</span>
+                                    <span class="tp-tag" id="repTrendClosingTag">Expiry Gravity</span>
+                                </div>
+                                <h4 class="tp-title">Phase 3: Max Pain Pinning</h4>
+                                <p class="tp-desc" id="repTrendClosing">Trapped retail call holders capitulate, triggering long unwinding cascades. Smart money guides price to pin near 25,000 to harvest 100% call decay.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4 Opening Bell Decision Blocks: The Bottom Line for Traders -->
+                <div class="bottom-blocks-header" style="margin-top: 20px; margin-bottom: 8px;">
+                    <h3 style="font-size: 14px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px;">The Bottom Line for Traders: 4 Opening Bell Directives</h3>
+                </div>
+                <div class="bottom-blocks-grid">
+                    <div class="bl-block block-915">
+                        <div class="bl-block-top">
+                            <span class="bicon">⏰</span>
+                            <strong>9:15 AM OPENING GAME PLAN</strong>
+                        </div>
+                        <p id="blGamePlan">At 9:15 AM: Do NOT chase gap-ups or panic on small gap-downs. Look for a buying opportunity near 25,000 - 25,050 with stop loss below 24,970.</p>
+                    </div>
+
+                    <div class="bl-block block-keylevel">
+                        <div class="bl-block-top">
+                            <span class="bicon">🔑</span>
+                            <strong>KEY LEVEL OF THE DAY</strong>
+                        </div>
+                        <p id="blKeyLevel">25,000 is the definitive make-or-break strike. As long as spot trades above 25,000, Smart Money is in complete control.</p>
+                    </div>
+
+                    <div class="bl-block block-strategy">
+                        <div class="bl-block-top">
+                            <span class="bicon">💡</span>
+                            <strong>RECOMMENDED STRATEGY & VEHICLE</strong>
+                        </div>
+                        <p id="blStrategy">Buy-On-Dips strategy targeting 25,200. Preferred vehicle: Bull Call Spread (25,050 CE / 25,200 CE) or Bull Put Credit Spread.</p>
+                    </div>
+
+                    <div class="bl-block block-avoid">
+                        <div class="bl-block-top">
+                            <span class="bicon">🚫</span>
+                            <strong>WHAT TO STRICTLY AVOID</strong>
+                        </div>
+                        <p id="blAvoid">STRICTLY AVOID buying out-of-the-money Puts. Retail is trapped in +234k puts and theta decay will destroy naked put buyers rapidly.</p>
+                    </div>
+                </div>
+
+                <!-- 2-Minute Executive Briefing -->
+                <div class="bl-full-summary-box" style="margin-top: 18px;">
+                    <div class="summary-box-header">
+                        <span class="sb-icon">📝</span>
+                        <strong>2-Minute Institutional Executive Briefing:</strong>
+                    </div>
+                    <p class="summary-text" id="blPlainSummary">
+                        Smart Money (Foreign Institutions and Proprietary trading desks) have jointly built a concrete floor at 25,000 
+                        by writing massive quantities of Put options. In contrast, retail traders panicked and bought over 234,000 Puts. 
+                        In Indian markets, smart money almost never lets retail profit on such extreme one-sided bets. 
+                        Therefore, the most probable market outcome tomorrow is a firm, resilient trading session where dips to 25,000 
+                        are aggressively bought, with potential for an explosive upward short squeeze towards 25,200 as retail put buyers panic and cover.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================================= -->
+        <!-- MODULE 2: UNIFIED 4×6 PARTICIPANT NET EXPOSURE HEATMAP                    -->
+        <!-- ========================================================================= -->
+        <section class="report-module-container" id="modHeatmap">
+            <div class="module-header-card">
+                <div class="module-header-left">
+                    <span class="module-num-pill pill-cyan">MODULE 02 • UNIFIED FLOW HEATMAP</span>
+                    <h2 class="module-title">Unified 4×6 Participant Net Exposure Heatmap</h2>
+                    <p class="module-desc">Complete cross-market matrix: All 4 participants across all 6 instruments with net contract flows and institutional bias</p>
+                </div>
+            </div>
+
+            <div class="report-card heatmap-card">
+                <div class="table-responsive">
+                    <table class="unified-heatmap-table" id="unifiedHeatmapTable">
+                        <thead>
+                            <tr>
+                                <th class="th-inst">DERIVATIVE INSTRUMENT</th>
+                                <th class="th-fii">FII NET CONTRACTS</th>
+                                <th class="th-pro">PRO DESK NET</th>
+                                <th class="th-cli">RETAIL CLIENT NET</th>
+                                <th class="th-dii">DII NET CONTRACTS</th>
+                                <th class="th-skew">INSTITUTIONAL MARKET SKEW</th>
+                            </tr>
+                        </thead>
+                        <tbody id="unifiedHeatmapBody">
+                            <!-- Populated dynamically via renderUnifiedHeatmap() -->
+                        </tbody>
+                        <tfoot id="unifiedHeatmapFoot">
+                            <!-- Populated dynamically with totals -->
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================================= -->
+        <!-- MODULE 3: 5-PILLAR INSTITUTIONAL CONFLUENCE & VOLATILITY MATRIX           -->
+        <!-- ========================================================================= -->
+        <section class="report-module-container" id="modFivePillars">
+            <div class="module-header-card">
+                <div class="module-header-left">
+                    <span class="module-num-pill pill-purple">MODULE 03 • QUANT CONFLUENCE</span>
+                    <h2 class="module-title">5-Pillar Institutional Confluence & Volatility Corridors</h2>
+                    <p class="module-desc">Multi-factor quantitative scorecard (0–100) synchronized with Option Selling Greek models and Gaussian SD bands</p>
+                </div>
+            </div>
+
+            <div class="report-card prob-matrix-card">
+                <!-- 5 Pillars Scorecard Grid -->
+                <div class="five-pillars-grid" id="repFivePillarsGrid" style="margin-bottom: 24px;">
+                    <!-- Populated dynamically via renderFivePillars() -->
+                </div>
+
+                <!-- Probability Regimes Grid -->
+                <div class="card-section-title" style="margin-top: 10px;">
+                    <div class="title-left">
+                        <span class="section-num">PROB</span>
+                        <div>
+                            <h3>Tomorrow's Market Behavior Probability Matrix</h3>
+                            <p class="section-desc">Regime forecast based on smart money positioning and retail trap mechanics</p>
+                        </div>
+                    </div>
+                    <span class="quant-badge" id="repDominantRegimeBadge">DOMINANT: UPSIDE SQUEEZE</span>
+                </div>
+
+                <div class="prob-cards-grid">
+                    <div class="prob-regime-box regime-upside" id="boxUpsideProb">
+                        <div class="prob-header">
+                            <span class="prob-name">Upside Breakout / Squeeze</span>
+                            <strong class="prob-pct" id="repUpsidePct">52%</strong>
+                        </div>
+                        <div class="prob-meter">
+                            <div class="prob-meter-fill meter-green" id="repUpsideBar" style="width: 52%;"></div>
+                        </div>
+                        <p class="prob-caption">Spot sustains above ATM; retail panic covering triggers upward extension.</p>
+                    </div>
+
+                    <div class="prob-regime-box regime-range" id="boxRangeProb">
+                        <div class="prob-header">
+                            <span class="prob-name">Rangebound Pinning & Theta</span>
+                            <strong class="prob-pct" id="repRangePct">38%</strong>
+                        </div>
+                        <div class="prob-meter">
+                            <div class="prob-meter-fill meter-amber" id="repRangeBar" style="width: 38%;"></div>
+                        </div>
+                        <p class="prob-caption">Oscillation between S1 and R1; big writers harvest maximum theta decay.</p>
+                    </div>
+
+                    <div class="prob-regime-box regime-downside" id="boxDownsideProb">
+                        <div class="prob-header">
+                            <span class="prob-name">Downside Breakdown Below S1</span>
+                            <strong class="prob-pct" id="repDownsidePct">10%</strong>
+                        </div>
+                        <div class="prob-meter">
+                            <div class="prob-meter-fill meter-red" id="repDownsideBar" style="width: 10%;"></div>
+                        </div>
+                        <p class="prob-caption">Tail risk only; requires global macro shock to breach institutional put walls.</p>
+                    </div>
+                </div>
+
+                <!-- Volatility & Corridor Statistics Row -->
+                <div class="volatility-stats-row">
+                    <div class="vstat-item">
+                        <span class="vstat-lbl">Implied Volatility (IV)</span>
+                        <strong class="vstat-val" id="repIvPct">12.6%</strong>
+                        <span class="vstat-sub">Normal Vol Environment</span>
+                    </div>
+                    <div class="vstat-item">
+                        <span class="vstat-lbl">Expected Daily Move</span>
+                        <strong class="vstat-val" id="repDailyMove">± 165.5 Pts</strong>
+                        <span class="vstat-sub">1-Day Standard Move</span>
+                    </div>
+                    <div class="vstat-item">
+                        <span class="vstat-lbl">1-SD Expected Corridor</span>
+                        <strong class="vstat-val text-green" id="repSd1Corridor">24,823 - 25,291</strong>
+                        <span class="vstat-sub">68.2% Probability Band</span>
+                    </div>
+                    <div class="vstat-item">
+                        <span class="vstat-lbl">Max Pain Sweet Spot</span>
+                        <strong class="vstat-val text-amber" id="repPinSweetSpot">25,000 - 25,050</strong>
+                        <span class="vstat-sub" id="repDecayPace">Max Theta Decay</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================================= -->
+        <!-- MODULE 4: TIMED "OPENING BELL" EXECUTION PROTOCOL (09:00 - 15:30)         -->
+        <!-- ========================================================================= -->
+        <section class="report-module-container" id="modTimedProtocol">
+            <div class="module-header-card">
+                <div class="module-header-left">
+                    <span class="module-num-pill pill-amber">MODULE 04 • EXECUTION TIMELINE</span>
+                    <h2 class="module-title">Timed "Opening Bell" Execution Protocol (09:00 to 15:30)</h2>
+                    <p class="module-desc">Chronological institutional trading manual: Pre-market settlement, opening volatility filter, execution window, and 2:00 PM expiry unwinding</p>
+                </div>
+            </div>
+
+            <div class="report-card timed-protocol-card">
+                <div class="timed-steps-timeline" id="timedProtocolContainer">
+                    <!-- Populated dynamically via renderTimedProtocol() -->
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================================= -->
+        <!-- MODULE 5: 3 ACTIONABLE NEXT-DAY SCENARIOS WITH TRADE BLUEPRINTS           -->
+        <!-- ========================================================================= -->
+        <section class="report-module-container" id="modScenarios">
+            <div class="module-header-card">
+                <div class="module-header-left">
+                    <span class="module-num-pill pill-gold">MODULE 05 • SCENARIO BLUEPRINTS</span>
+                    <h2 class="module-title">3 Next-Day Actionable Scenarios with Trade Execution Blueprints</h2>
+                    <p class="module-desc">Definitive institutional roadmap: Exact triggers, target levels, invalidation points, and mathematical trade vehicles</p>
+                </div>
+                <span class="scenarios-summary-badge" id="repScenariosSummaryBadge">Scenario A (52%) Dominant</span>
+            </div>
+
+            <div class="scenarios-grid">
+                <!-- Scenario A -->
+                <div class="scenario-card scenario-bullish" id="cardScenarioA">
+                    <div class="scen-top">
+                        <div class="scen-badge-row">
+                            <span class="scen-badge badge-green" id="scenABadge">52% Probability</span>
+                            <span class="scen-tag tag-green" id="scenATag">DOMINANT REGIME</span>
+                        </div>
+                        <h4 class="scen-title" id="scenATitle">Scenario A: Bullish Squeeze / Upside Continuation</h4>
+                    </div>
+                    <div class="scen-body">
+                        <div class="scen-metrics-list">
+                            <div class="scen-item item-trigger">
+                                <div class="scen-item-header">
+                                    <span class="scen-icon">⚡</span>
+                                    <span class="scen-lbl">TRIGGER LEVEL</span>
+                                </div>
+                                <p class="scen-val text-green" id="scenATrigger">Spot crosses and sustains above 25,090 for 15 minutes with rising volume</p>
+                            </div>
+                            <div class="scen-item item-target">
+                                <div class="scen-item-header">
+                                    <span class="scen-icon">🎯</span>
+                                    <span class="scen-lbl">UPSIDE TARGETS</span>
+                                </div>
+                                <p class="scen-val" id="scenATargets">Target 1: 25,200 (R1 Barrier) • Target 2: 25,280</p>
+                            </div>
+                            <div class="scen-item item-invalidation">
+                                <div class="scen-item-header">
+                                    <span class="scen-icon">🛑</span>
+                                    <span class="scen-lbl">INVALIDATION LEVEL</span>
+                                </div>
+                                <p class="scen-val text-red" id="scenAInvalidation">Decisive 15-minute close below S1 Floor (25,000)</p>
+                            </div>
+                        </div>
+
+                        <!-- Trade Execution Blueprint Card -->
+                        <div class="scen-blueprint-box">
+                            <div class="sbb-header">
+                                <span class="sbb-icon">🏹</span>
+                                <strong>STRATEGY & EXECUTION BLUEPRINT</strong>
+                            </div>
+                            <div class="sbb-grid">
+                                <div class="sbb-col">
+                                    <span class="sbb-lbl">Vehicle:</span>
+                                    <strong class="sbb-val" id="scenATrade">Bull Put Credit Spread (Sell 25,000 PE / Buy 24,850 PE)</strong>
+                                </div>
+                                <div class="sbb-col">
+                                    <span class="sbb-lbl">Reward / Risk:</span>
+                                    <strong class="sbb-val text-green" id="scenARiskReward">1 : 2.4</strong>
+                                </div>
+                                <div class="sbb-col">
+                                    <span class="sbb-lbl">Breakeven:</span>
+                                    <strong class="sbb-val text-amber" id="scenABreakeven">24,965.0</strong>
+                                </div>
+                                <div class="sbb-col">
+                                    <span class="sbb-lbl">Target Move:</span>
+                                    <strong class="sbb-val text-cyan" id="scenAPoints">+142 Pts Upside</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="scen-reaction-box">
+                            <div class="reaction-header">
+                                <span class="r-icon">🏦</span>
+                                <span class="scen-lbl">INSTITUTIONAL REACTION</span>
+                            </div>
+                            <p class="scen-val text-muted" id="scenAReaction">Retail put buyers begin panic covering while PRO desks roll call writing higher, unleashing forced buying momentum.</p>
+                        </div>
+
+                        <div class="scen-playbook-box">
+                            <div class="playbook-header">
+                                <span class="pb-icon">📖</span>
+                                <span class="playbook-lbl">TRADER EXECUTION PLAYBOOK</span>
+                            </div>
+                            <p id="scenAPlaybook">Deploy Buy-On-Dips: Buy ATM Call options or Bull Call Spread on retest of 25,020-25,050 with stop below 24,970.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scenario B -->
+                <div class="scenario-card scenario-range" id="cardScenarioB">
+                    <div class="scen-top">
+                        <div class="scen-badge-row">
+                            <span class="scen-badge badge-amber" id="scenBBadge">38% Probability</span>
+                            <span class="scen-tag tag-amber" id="scenBTag">RANGE HARVEST</span>
+                        </div>
+                        <h4 class="scen-title" id="scenBTitle">Scenario B: Rangebound Pinning & Theta Harvest</h4>
+                    </div>
+                    <div class="scen-body">
+                        <div class="scen-metrics-list">
+                            <div class="scen-item item-trigger">
+                                <div class="scen-item-header">
+                                    <span class="scen-icon">⚡</span>
+                                    <span class="scen-lbl">TRIGGER LEVEL</span>
+                                </div>
+                                <p class="scen-val text-amber" id="scenBTrigger">Spot opens flat and oscillates inside 25,000 - 25,110 during the first 45 minutes</p>
+                            </div>
+                            <div class="scen-item item-target">
+                                <div class="scen-item-header">
+                                    <span class="scen-icon">📍</span>
+                                    <span class="scen-lbl">PINNING CORRIDOR</span>
+                                </div>
+                                <p class="scen-val" id="scenBPinning">25,000 - 25,200 (Max Pain Sweet Spot: 25,050)</p>
+                            </div>
+                            <div class="scen-item item-invalidation">
+                                <div class="scen-item-header">
+                                    <span class="scen-icon">🛑</span>
+                                    <span class="scen-lbl">INVALIDATION LEVEL</span>
+                                </div>
+                                <p class="scen-val text-red" id="scenBInvalidation">Decisive momentum breakout beyond 25,200 or breakdown below 25,000</p>
+                            </div>
+                        </div>
+
+                        <!-- Trade Execution Blueprint Card -->
+                        <div class="scen-blueprint-box">
+                            <div class="sbb-header">
+                                <span class="sbb-icon">🏹</span>
+                                <strong>STRATEGY & EXECUTION BLUEPRINT</strong>
+                            </div>
+                            <div class="sbb-grid">
+                                <div class="sbb-col">
+                                    <span class="sbb-lbl">Vehicle:</span>
+                                    <strong class="sbb-val" id="scenBTrade">Delta-Neutral Iron Condor (Sell 25,000 PE & Sell 25,200 CE)</strong>
+                                </div>
+                                <div class="sbb-col">
+                                    <span class="sbb-lbl">Reward / Risk:</span>
+                                    <strong class="sbb-val text-green" id="scenBRiskReward">1 : 1.8</strong>
+                                </div>
+                                <div class="sbb-col">
+                                    <span class="sbb-lbl">Breakeven:</span>
+                                    <strong class="sbb-val text-amber" id="scenBBreakeven">24,955 to 25,245</strong>
+                                </div>
+                                <div class="sbb-col">
+                                    <span class="sbb-lbl">Target Move:</span>
+                                    <strong class="sbb-val text-cyan" id="scenBPoints">Capture 60% Theta Decay</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="scen-reaction-box">
+                            <div class="reaction-header">
+                                <span class="r-icon">🏦</span>
+                                <span class="scen-lbl">INSTITUTIONAL REACTION</span>
+                            </div>
+                            <p class="scen-val text-muted" id="scenBReaction">PRO desks and FII put writers suppress intraday volatility to harvest rapid theta decay across both wings.</p>
+                        </div>
+
+                        <div class="scen-playbook-box">
+                            <div class="playbook-header">
+                                <span class="pb-icon">📖</span>
+                                <span class="playbook-lbl">TRADER EXECUTION PLAYBOOK</span>
+                            </div>
+                            <p id="scenBPlaybook">Deploy Iron Condor. Scalp only at extremes (buy calls at S1, buy puts at R1). Do not hold naked directional positions.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scenario C -->
+                <div class="scenario-card scenario-bearish" id="cardScenarioC">
+                    <div class="scen-top">
+                        <div class="scen-badge-row">
+                            <span class="scen-badge badge-red" id="scenCBadge">10% Probability</span>
+                            <span class="scen-tag tag-red" id="scenCTag">LOW PROBABILITY BREAKDOWN</span>
+                        </div>
+                        <h4 class="scen-title" id="scenCTitle">Scenario C: Bearish Breakdown Below Support Floor</h4>
+                    </div>
+                    <div class="scen-body">
+                        <div class="scen-metrics-list">
+                            <div class="scen-item item-trigger">
+                                <div class="scen-item-header">
+                                    <span class="scen-icon">⚡</span>
+                                    <span class="scen-lbl">TRIGGER LEVEL</span>
+                                </div>
+                                <p class="scen-val text-red" id="scenCTrigger">Decisive 15-minute close below 24,975 with global selloff & PCR below 0.50</p>
+                            </div>
+                            <div class="scen-item item-target">
+                                <div class="scen-item-header">
+                                    <span class="scen-icon">🎯</span>
+                                    <span class="scen-lbl">DOWNSIDE TARGETS</span>
+                                </div>
+                                <p class="scen-val" id="scenCTargets">Target 1: 24,850 • Target 2: 24,000 (S2 Bedrock)</p>
+                            </div>
+                            <div class="scen-item item-invalidation">
+                                <div class="scen-item-header">
+                                    <span class="scen-icon">🛑</span>
+                                    <span class="scen-lbl">INVALIDATION LEVEL</span>
+                                </div>
+                                <p class="scen-val text-green" id="scenCInvalidation">Spot reclaiming above 25,030</p>
+                            </div>
+                        </div>
+
+                        <!-- Trade Execution Blueprint Card -->
+                        <div class="scen-blueprint-box">
+                            <div class="sbb-header">
+                                <span class="sbb-icon">🏹</span>
+                                <strong>STRATEGY & EXECUTION BLUEPRINT</strong>
+                            </div>
+                            <div class="sbb-grid">
+                                <div class="sbb-col">
+                                    <span class="sbb-lbl">Vehicle:</span>
+                                    <strong class="sbb-val" id="scenCTrade">Bear Put Debit Spread (Wait for 15m close below 24,975)</strong>
+                                </div>
+                                <div class="sbb-col">
+                                    <span class="sbb-lbl">Reward / Risk:</span>
+                                    <strong class="sbb-val text-green" id="scenCRiskReward">1 : 3.0</strong>
+                                </div>
+                                <div class="sbb-col">
+                                    <span class="sbb-lbl">Breakeven:</span>
+                                    <strong class="sbb-val text-amber" id="scenCBreakeven">24,930.0</strong>
+                                </div>
+                                <div class="sbb-col">
+                                    <span class="sbb-lbl">Target Move:</span>
+                                    <strong class="sbb-val text-cyan" id="scenCPoints">-150 Pts Downside</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="scen-reaction-box">
+                            <div class="reaction-header">
+                                <span class="r-icon">🏦</span>
+                                <span class="scen-lbl">INSTITUTIONAL REACTION</span>
+                            </div>
+                            <p class="scen-val text-muted" id="scenCReaction">Put writers are caught off guard and forced to cover, triggering an unwinding cascade towards secondary demand.</p>
+                        </div>
+
+                        <div class="scen-playbook-box">
+                            <div class="playbook-header">
+                                <span class="pb-icon">📖</span>
+                                <span class="playbook-lbl">TRADER EXECUTION PLAYBOOK</span>
+                            </div>
+                            <p id="scenCPlaybook">Strict Contrition Rule: Do NOT short preemptively. Only buy ATM PE if 24,975 breaks on heavy institutional volume.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================================= -->
+        <!-- MODULE 6: THE 6 SEGREGATED INSTRUMENTS SIDE-BY-SIDE SPLIT MAPPING         -->
+        <!-- ========================================================================= -->
+        <section class="report-module-container" id="modSegregated">
+            <div class="module-header-card">
+                <div class="module-header-left">
+                    <span class="module-num-pill pill-blue">MODULE 06 • SEGREGATED MAPPING</span>
+                    <h2 class="module-title">Day's Participant-Wise OI Segregated by Instrument & Mapped to Option Chain</h2>
+                    <p class="module-desc">
+                        Every single instrument table (Index Futures, Index Calls, Index Puts, Stock Futures, Stock Calls, Stock Puts) 
+                        with all 4 participant rows (Clients, DIIs, FIIs, Pros) and all columns (Added/Closed Longs & Shorts, Net Today, Carried) 
+                        on the left, mapped side-by-side with Option Chain strikes, smart money action, retail traps, and next-day price impact on the right.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Dynamic Container for the 6 Segregated Split Rows -->
+            <div class="segregated-instruments-list" id="segregatedInstrumentsContainer">
+                <!-- Populated dynamically via JavaScript with all 6 instruments -->
+            </div>
+        </section>
+
+
+        <!-- ========================================================================= -->
+        <!-- MODULE 7: WHAT EVERYONE POSITIONED & WHAT EVERYONE WANTS (4 DOSSIERS)     -->
+        <!-- ========================================================================= -->
+        <section class="report-module-container" id="modDossiers">
+            <div class="module-header-card">
+                <div class="module-header-left">
+                    <span class="module-num-pill pill-green">MODULE 07 • PARTICIPANT DOSSIERS</span>
+                    <h2 class="module-title">What Everyone Positioned & What Everyone Wants</h2>
+                    <p class="module-desc">Strategic game plan, institutional intent, and desired market outcome for FII, PRO, Client, and DII</p>
+                </div>
+            </div>
+
+            <div class="dossiers-grid" id="repDossiersGrid">
+                <!-- Populated dynamically -->
+            </div>
+        </section>
+
+
+        <!-- ========================================================================= -->
+        <!-- MODULE 8: OPTION SELLING ADVISORY BRIEF CARD (ZERODHA VARSITY GREEKS)     -->
+        <!-- ========================================================================= -->
+        <section class="report-module-container" id="modOptionSelling">
+            <div class="report-card option-selling-brief-card" id="repOptionSellingCard">
+                <div class="card-section-title">
+                    <span class="cst-icon">🛡️</span>
+                    <div>
+                        <h3>Suitable Option Strategies for Option Selling (Zerodha Varsity Model)</h3>
+                        <p>Quantitative strategy recommendation based on Delta (0.15–0.25 sweet spot), Theta time decay, and 1-SD normal distribution floor</p>
+                    </div>
+                    <a href="/option-selling" class="btn btn-outline btn-sm" style="margin-left: auto; border-color: #f59e0b; color: #fbbf24;">
+                        <span>Open Full Option Selling Engine</span> <span class="gateway-arr">→</span>
+                    </a>
+                </div>
+
+                <div class="selling-brief-hero">
+                    <div class="sb-hero-left">
+                        <div class="sb-badge-row">
+                            <span class="sb-rank-tag">👑 BEST STRATEGY TO EXECUTE</span>
+                            <span class="sb-pop-badge" id="repSellPop">85% Win Rate</span>
+                            <span class="sb-dte-badge" id="repSellDte">4 Days to Expiry</span>
+                        </div>
+                        <h4 class="sb-title" id="repSellTitle">NIFTY Bull Put Credit Spread (Smart Money Shield)</h4>
+                        <p class="sb-sub" id="repSellArchetype">Tail-Hedged Credit Spread • Bullish Support Defense</p>
+
+                        <div class="sb-legs-grid" id="repSellLegs">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="sb-hero-right">
+                        <div class="sb-financial-scorecard">
+                            <div class="sbf-row">
+                                <span class="sbf-lbl">Net Credit Collected:</span>
+                                <strong class="sbf-val text-green" id="repSellNetCredit">+₹33.0 pts (+₹825 / lot)</strong>
+                            </div>
+                            <div class="sbf-row">
+                                <span class="sbf-lbl">Max Defined Risk:</span>
+                                <strong class="sbf-val text-red" id="repSellMaxRisk">-₹117.0 pts (-₹2,925 / lot)</strong>
+                            </div>
+                            <div class="sbf-row">
+                                <span class="sbf-lbl">Breakeven Point:</span>
+                                <strong class="sbf-val text-amber" id="repSellBreakeven">24,767.0</strong>
+                            </div>
+                            <div class="sbf-row">
+                                <span class="sbf-lbl">Margin Required:</span>
+                                <strong class="sbf-val text-cyan" id="repSellMargin">₹28,000 (Saved 77.6%)</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sb-rationale-box">
+                    <div class="sbr-header">
+                        <span class="sbr-icon">💡</span>
+                        <strong>Why This Strategy & These Exact Strikes Are the Most Efficient:</strong>
+                    </div>
+                    <p id="repSellRationale">
+                        FIIs and PRO desks are heavy Put writers at Support S1, while Retail Clients are trapped in long puts. 
+                        Selling a Bull Put Spread monetizes this smart money defense wall with 85%+ win rate and 77% margin discount.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Printable Formal Memo Footer (Visible only in Print) -->
+        <div class="print-memo-footer print-only">
+            <div class="memo-divider"></div>
+            <div class="memo-foot-row">
+                <p>NSE Derivative Intelligence Group • Proprietary Flow Model v4.2</p>
+                <p>Generated: 2026-10-30 • Confidential Trading Desk Document</p>
+            </div>
+        </div>
+
+    </div>
+    <!-- Auto-Run Loader -->
+    <script>
+        (function autoRunDr() {
+            if (typeof initDetailsReportPage === 'function') {
+                initDetailsReportPage();
+            } else {
+                setTimeout(autoRunDr, 30);
+            }
+        })();
+    </script>
+</div>
+{% endblock %}
