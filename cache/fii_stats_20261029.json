@@ -1,0 +1,34 @@
+{
+  "NIFTY": {
+    "fut_buy_contracts": 35,
+    "fut_sell_contracts": 6,
+    "fut_oi": 15,
+    "opt_buy_contracts": 2,
+    "opt_sell_contracts": 65,
+    "opt_oi": 11
+  },
+  "BANKNIFTY": {
+    "fut_buy_contracts": 225520,
+    "fut_sell_contracts": 37468,
+    "fut_oi": 222983,
+    "opt_buy_contracts": 37005,
+    "opt_sell_contracts": 415429,
+    "opt_oi": 68433
+  },
+  "FINNIFTY": {
+    "fut_buy_contracts": 5449,
+    "fut_sell_contracts": 826,
+    "fut_oi": 6038,
+    "opt_buy_contracts": 928,
+    "opt_sell_contracts": 2689,
+    "opt_oi": 398
+  },
+  "MIDCPNIFTY": {
+    "fut_buy_contracts": 23673,
+    "fut_sell_contracts": 3747,
+    "fut_oi": 22749,
+    "opt_buy_contracts": 3609,
+    "opt_sell_contracts": 41757,
+    "opt_oi": 6705
+  }
+}
