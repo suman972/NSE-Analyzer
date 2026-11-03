@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="latest-session-date" content="{{ latest_session_date }}">
+    <meta name="latest-session-label" content="{{ latest_session_label }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -30,13 +32,13 @@
             <div class="yt-date-chip" id="topbarDateChip" title="Click to Change Active Trading Session Date" style="position: relative; cursor: pointer;">
                 <span class="chip-icon">📅</span>
                 <span class="chip-label">TRADING DATE:</span>
-                <strong id="topbarActiveDateDisplay">2026-10-30</strong>
+                <strong id="topbarActiveDateDisplay">{{ latest_session_date }}</strong>
                 <span class="chip-dot"></span>
                 <span class="chip-sync" id="topbarSyncStatus">NSE SYNCED</span>
                 <input type="date" id="topbarHiddenDateInput" title="Click to change date" style="position: absolute; opacity: 0; pointer-events: auto; width: 100%; height: 100%; top: 0; left: 0; cursor: pointer;">
             </div>
             <div class="topbar-presets" style="display: inline-flex; align-items: center; gap: 4px;">
-                <button type="button" class="date-preset-btn" data-preset="2026-10-30" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #cbd5e1; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="Latest Verified Live Session">30 Oct (Latest)</button>
+                <button type="button" class="date-preset-btn" data-preset="{{ latest_session_date }}" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #cbd5e1; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="Latest Verified Live Session">⚡ {{ latest_session_label }} (Latest)</button>
             </div>
         </div>
 
