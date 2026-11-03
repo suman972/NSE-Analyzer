@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+
+{% block title %}Option Selling Strategies: Greek & Probability Advisory | NSE Derivatives Intelligence{% endblock %}
+
+{% block content %}
+<div class="selling-strategies-container">
+    <!-- Top Action Bar -->
+    <section class="report-action-bar selling-action-bar">
+        <div class="rab-left">
+            <div class="rep-symbol-pills" id="sellSymbolPills">
+                <button type="button" class="rep-pill-btn active" data-symbol="NIFTY">NIFTY</button>
+                <button type="button" class="rep-pill-btn" data-symbol="BANKNIFTY">BANKNIFTY</button>
+                <button type="button" class="rep-pill-btn" data-symbol="FINNIFTY">FINNIFTY</button>
+            </div>
+            <div class="rab-date-group">
+                <span class="rab-lbl">SESSION:</span>
+                <input type="date" id="sellDateInput" class="rep-date-picker" value="2026-10-30">
+            </div>
+
+            <!-- Quick Date Presets -->
+            <div style="display: inline-flex; align-items: center; gap: 4px;">
+                <button type="button" class="btn btn-sm date-preset-btn" data-preset="2026-10-30" style="padding: 5px 8px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); color: #cbd5e1;" title="Latest Verified Live Session">⚡ 30 Oct (Latest)</button>
+            </div>
+            <div class="rab-expiry-group">
+                <span class="rab-lbl">EXPIRY:</span>
+                <select id="sellExpirySelect" class="rep-expiry-select">
+                    <option value="">Nearest Weekly Expiry</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="rab-right">
+            <button type="button" class="btn btn-outline" id="btnCopySellStrategy" title="Copy Best Strategy Execution Ticket to Clipboard">
+                <span class="btn-icon">📋</span> Copy Strategy
+            </button>
+            <button type="button" class="btn btn-primary" id="btnPrintSellTicket" title="Print Formal Trade Execution Memo">
+                <span class="btn-icon">🖨️</span> Print Ticket
+            </button>
+        </div>
+    </section>
+
+    <!-- Universal Cross-Page Navigation Strip -->
+    <div class="universal-nav-strip">
+        <span class="uns-label">⚡ JUMP TO VIEW:</span>
+        <a href="/pipeline" class="uns-link">
+            <span class="uns-icon">⚡</span> 5-Data Pipeline <span class="uns-badge" style="background: rgba(168, 85, 247, 0.25); color: #c084fc; border-color: rgba(168, 85, 247, 0.4);">5 DATA</span>
+        </a>
+        <a href="/participant-oi" class="uns-link {% if active_page == 'participant_oi' %}active{% endif %}">
+            <span class="uns-icon">👥</span> Participant-Wise OI Analyzer
+        </a>
+        <a href="/option-chain" class="uns-link {% if active_page == 'option_chain' %}active{% endif %}">
+            <span class="uns-icon">📊</span> Proper Option Chain (NSE Pro View)
+        </a>
+        <a href="/details-report" class="uns-link {% if active_page == 'details_report' %}active{% endif %}">
+            <span class="uns-icon">📑</span> Institutional Details Report
+        </a>
+        <a href="/option-selling" class="uns-link {% if active_page == 'option_selling' %}active{% endif %}">
+            <span class="uns-icon">🛡️</span> Option Selling Advisory <span class="uns-badge">PRO</span>
+        </a>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="report-loading-overlay" id="sellLoadingOverlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Calculating Option Greeks, Standard Deviation Bands & Strike Efficiency...</div>
+    </div>
+
+    <!-- Main Content Body -->
+    <div class="selling-content-body" id="sellContentBody">
+
+        <!-- Executive Hero Card -->
+        <section class="selling-hero-card" id="sellHeroCard">
+            <div class="hero-top-row">
+                <div class="hero-rank-pill">
+                    <span class="crown-icon">👑</span>
+                    <strong>RANK 1: BEST OPTION SELLING STRATEGY TO EXECUTE</strong>
+                </div>
+                <div class="hero-meta-badges">
+                    <span class="hbadge badge-pop" id="heroPopBadge">85% Win Rate</span>
+                    <span class="hbadge badge-greeks" id="heroDteBadge">4 Days to Expiry</span>
+                    <span class="hbadge badge-iv" id="heroIvBadge">IV: 13.5%</span>
+                </div>
+            </div>
+
+            <div class="hero-title-wrap">
+                <h2 class="hero-strat-title" id="heroStratTitle">NIFTY Bull Put Credit Spread (Smart Money Shield)</h2>
+                <p class="hero-strat-sub" id="heroStratSub">Optimized via Zerodha Varsity Options Theory • Tail-Hedged Credit Spread</p>
+            </div>
+
+            <!-- Key Financials Banner -->
+            <div class="hero-metrics-grid">
+                <div class="hm-box">
+                    <span class="hm-lbl">NET CREDIT COLLECTED</span>
+                    <strong class="hm-val text-green" id="heroNetCredit">+₹1,107.50 / lot</strong>
+                    <span class="hm-sub" id="heroCreditPts">+44.3 Pts per share</span>
+                </div>
+                <div class="hm-box">
+                    <span class="hm-lbl">MAX DEFINED RISK</span>
+                    <strong class="hm-val text-red" id="heroMaxRisk">₹2,642.50 / lot</strong>
+                    <span class="hm-sub" id="heroRiskPts">-105.7 Pts per share</span>
+                </div>
+                <div class="hm-box">
+                    <span class="hm-lbl">BREAKEVEN LEVEL</span>
+                    <strong class="hm-val text-amber" id="heroBreakeven">24,955.70</strong>
+                    <span class="hm-sub" id="heroBeDesc">Spot must stay above</span>
+                </div>
+                <div class="hm-box">
+                    <span class="hm-lbl">SPAN MARGIN SAVINGS</span>
+                    <strong class="hm-val text-cyan" id="heroMarginSavings">77.6% Slashed</strong>
+                    <span class="hm-sub" id="heroMarginDetail">₹1,25,000 → ₹28,000</span>
+                </div>
+            </div>
+
+            <!-- Executive Thesis -->
+            <div class="hero-thesis-box">
+                <div class="thesis-header">
+                    <span class="t-icon">💡</span>
+                    <strong>Executive Option Selling Thesis (Varsity Quantitative Edge):</strong>
+                </div>
+                <p id="heroThesisText">
+                    Based on Zerodha Varsity Options Theory, option writers possess a mathematical statistical edge because 
+                    2 out of 3 market outcomes (flat or opposite direction) favor the seller. With 4 days to expiry, 
+                    time decay (Theta) accelerates exponentially. By selling the 24,800 Put at the 1-SD boundary and hedging with 
+                    a protective wing at 24,650, you harvest +₹10.05/day in theta decay while cutting margin requirements by 77.6% 
+                    and eliminating Black Swan tail risk.
+                </p>
+            </div>
+        </section>
+
+        <!-- Section: AI / ML Quantitative Radar Callout Banner -->
+        <section class="report-section" style="margin-bottom: 24px;">
+            <div style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.7), rgba(15, 23, 42, 0.9)); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: var(--radius-lg); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; box-shadow: 0 4px 20px rgba(139, 92, 246, 0.15);">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="font-size: 32px; background: rgba(139, 92, 246, 0.2); width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(139, 92, 246, 0.3);">
+                        🧠
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                            <span style="font-size: 11px; font-weight: 800; background: rgba(139, 92, 246, 0.3); color: #c084fc; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.5px;">AI / ML QUANT RADAR</span>
+                            <span style="font-size: 12px; color: var(--text-muted);">Tier-1 Quantitative Desk Architecture</span>
+                        </div>
+                        <h4 style="font-size: 16px; font-weight: 800; color: #f8fafc; margin-bottom: 2px;">
+                            Next-Day Probabilistic Regimes (HMM) & Gradient Boosted Trees (LightGBM)
+                        </h4>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">
+                            Live Dealer Net Gamma Exposure (GEX), Vanna Flow, Retail Trap Metric, and Fractional Kelly Sizing.
+                        </p>
+                    </div>
+                </div>
+                <a href="/pipeline" class="btn btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-md); font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);">
+                    <span>⚡ Launch 5-Data Quant Pipeline</span>
+                    <span>→</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- Section 1.5: Institutional Market View Creation & Confluence Matrix -->
+        <section class="report-section view-creation-section" id="marketViewSection">
+            <div class="card-section-title">
+                <span class="cst-icon">🧭</span>
+                <div>
+                    <h3>Institutional Market View Creation & Confluence Matrix</h3>
+                    <p>Multi-factor quantitative synthesis across 5 core pillars: Futures Inventory, Option Writing Skew, Retail Sentiment Trap, Chain Structure & Normal Distribution</p>
+                </div>
+            </div>
+
+            <div class="view-creation-card" id="viewCreationCard">
+                <!-- Master Stance Banner -->
+                <div class="view-hero-strip" id="viewHeroStrip">
+                    <div class="vhs-left">
+                        <div class="vhs-badge-row">
+                            <span class="view-stance-badge badge-green" id="viewStanceBadge">DEFENSIVE BULLISH FLOOR</span>
+                            <span class="view-conviction-pill" id="viewConvictionPill">88% HIGH CONVICTION</span>
+                        </div>
+                        <h4 class="view-stance-title" id="viewStanceTitle">Smart Money Put Writing Defense & Trapped Retail Puts</h4>
+                        <p class="view-stance-meta" id="viewStanceMeta">Optimal Archetype: <strong id="viewRecommendedArchetype">Bullish Credit Spread</strong> • Target Corridor: <strong id="viewTargetCorridor">Defended above 25,000 towards 25,100</strong></p>
+                    </div>
+
+                    <div class="vhs-right">
+                        <div class="view-score-dial">
+                            <span class="vsd-lbl">INSTITUTIONAL COMPOSITE SCORE</span>
+                            <div class="vsd-val-wrap">
+                                <span class="vsd-score text-green" id="viewCompositeScore">78</span>
+                                <span class="vsd-max">/ 100</span>
+                            </div>
+                            <span class="vsd-sub" id="viewScoreBias">Bullish Bias Floor (≥ 58)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Invalidation Trigger Alert Strip -->
+                <div class="invalidation-alert-banner">
+                    <div class="iab-icon">🚨</div>
+                    <div class="iab-body">
+                        <strong>STRICT THESIS INVALIDATION LEVEL (EXIT / ADJUSTMENT TRIGGER):</strong>
+                        <span id="viewInvalidationTrigger">Decisive 15-minute candle close below S1 Support (25,000) or 1-SD Floor (24,850)</span>
+                    </div>
+                </div>
+
+                <!-- 5 Quantitative Pillars Grid -->
+                <div class="five-pillars-grid" id="fivePillarsGrid">
+                    <!-- Populated dynamically via JS -->
+                </div>
+
+                <!-- Smart Money Game Plan & Retail Trap Split Cards -->
+                <div class="gameplan-cards-grid">
+                    <div class="gameplan-card gp-smart-money">
+                        <div class="gp-head">
+                            <span class="gph-icon">🏦</span>
+                            <div>
+                                <h4>Institutional Smart Money Game Plan</h4>
+                                <span class="gph-sub">What FIIs & Proprietary Desks are Engineering</span>
+                            </div>
+                        </div>
+                        <p id="viewSmartMoneyGameplan" class="gp-text">
+                            Institutional desks (Pro + FII) have concentrated massive Put shorting around S1 Support. Their primary objective is to defend this floor and capture full theta decay.
+                        </p>
+                    </div>
+
+                    <div class="gameplan-card gp-retail-trap">
+                        <div class="gp-head">
+                            <span class="gph-icon">👤</span>
+                            <div>
+                                <h4>Retail Sentiment Trap Diagnosis</h4>
+                                <span class="gph-sub">Crowd Mispositioning & Premium Extraction Edge</span>
+                            </div>
+                        </div>
+                        <p id="viewRetailTrapAnalysis" class="gp-text">
+                            Retail clients are caught holding heavy net Puts. Option writers hold the market above support, allowing accelerated theta decay to destroy retail option value.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Why Strategy Fits View Banner -->
+                <div class="strategy-fit-banner">
+                    <div class="sfb-badge">CONFLUENCE VERDICT</div>
+                    <p id="viewStrategyFitText">
+                        Selling the 25,000 Put backed by a protective wing matches the institutional objective perfectly: harvesting premium while smart money defends your strike against breakdown.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Top 3 Recommended Option Selling Strategies -->
+        <section class="report-section strategies-ranking-section">
+            <div class="card-section-title">
+                <span class="cst-icon">🎯</span>
+                <div>
+                    <h3>Top 3 Recommended Option Selling Strategies</h3>
+                    <p>Ranked by Probability of Profit (POP %), Risk-Adjusted Theta Decay, and Smart Money Confluence</p>
+                </div>
+            </div>
+
+            <div class="strategy-cards-list" id="stratCardsContainer">
+                <!-- Dynamically populated via renderSellingStrategies() -->
+            </div>
+        </section>
+
+        <!-- Section 3: Live Strike Price Efficiency Matrix -->
+        <section class="report-section strike-efficiency-section">
+            <div class="card-section-title">
+                <span class="cst-icon">📊</span>
+                <div>
+                    <h3>Strike Price Efficiency Ranking Matrix</h3>
+                    <p>Live Greek breakdown: Delta (ITM Probability), Daily Theta (Income), Gamma (Curvature Risk), and Option Selling Efficiency Score (OSES)</p>
+                </div>
+            </div>
+
+            <div class="efficiency-table-card">
+                <div class="eff-legend-row">
+                    <span class="eff-leg-item"><span class="badge-tag-crown">👑</span> Best Strike to Sell (Sweet Spot: Delta 0.15–0.25, High Theta)</span>
+                    <span class="eff-leg-item"><span class="badge-tag-shield">🛡️</span> Optimal Hedge Wing (Cheap Wing, Maximum Margin Slash)</span>
+                    <span class="eff-leg-item"><span class="badge-tag-danger">⚠️</span> Gamma Trap (ATM Strike: Extreme Curvature Risk)</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="efficiency-data-table" id="efficiencyTable">
+                        <thead>
+                            <tr>
+                                <th colspan="7" class="th-call-grp">CALL OPTIONS (CE SELLING CANDIDATES)</th>
+                                <th rowspan="2" class="th-strike">STRIKE</th>
+                                <th rowspan="2" class="th-dist">DIST / SD</th>
+                                <th colspan="7" class="th-put-grp">PUT OPTIONS (PE SELLING CANDIDATES)</th>
+                            </tr>
+                            <tr>
+                                <th>LTP</th>
+                                <th>Vol / OI</th>
+                                <th>Delta (Δ)</th>
+                                <th>Daily Theta</th>
+                                <th>Gamma (Γ)</th>
+                                <th>POP %</th>
+                                <th>Score (OSES)</th>
+
+                                <th>Score (OSES)</th>
+                                <th>POP %</th>
+                                <th>Gamma (Γ)</th>
+                                <th>Daily Theta</th>
+                                <th>Delta (Δ)</th>
+                                <th>Vol / OI</th>
+                                <th>LTP</th>
+                            </tr>
+                        </thead>
+                        <tbody id="efficiencyTableBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: The 4 Golden Pillars of Professional Option Selling -->
+        <section class="report-section varsity-pillars-section">
+            <div class="card-section-title">
+                <span class="cst-icon">📖</span>
+                <div>
+                    <h3>Zerodha Varsity Option Selling Framework</h3>
+                    <p>Core quantitative principles from Module 5: "Options Theory for Professional Trading"</p>
+                </div>
+            </div>
+
+            <div class="varsity-pillars-grid">
+                <!-- Pillar 1 -->
+                <div class="pillar-card">
+                    <div class="pillar-top">
+                        <span class="picon">🎲</span>
+                        <h4>1. The Statistical Edge of the Writer</h4>
+                    </div>
+                    <p>
+                        In every option contract, there are 3 possible directional outcomes: the asset rises, stays flat, or drops. 
+                        While the option buyer needs an immediate, aggressive move in 1 direction to beat time decay, 
+                        <strong>2 out of the 3 outcomes (flat or opposite direction) directly profit the option seller</strong>. 
+                        Statistically, the seller starts with a 66.6% edge before any technical analysis.
+                    </p>
+                    <span class="pillar-tag">Varsity Chapter 1 & 7</span>
+                </div>
+
+                <!-- Pillar 2 -->
+                <div class="pillar-card">
+                    <div class="pillar-top">
+                        <span class="picon">🎯</span>
+                        <h4>2. The Delta Sweet Spot (0.15 - 0.25)</h4>
+                    </div>
+                    <p>
+                        An option's Delta is a direct proxy for its <strong>probability of expiring In-The-Money (ITM)</strong>. 
+                        Selling strikes with Delta between 0.15 and 0.25 guarantees an <strong>75% to 85% statistical probability of expiring worthless</strong>. 
+                        It avoids deep OTM options (too little premium) and ATM options (excessive directional risk).
+                    </p>
+                    <span class="pillar-tag">Varsity Chapter 9 & 11</span>
+                </div>
+
+                <!-- Pillar 3 -->
+                <div class="pillar-card">
+                    <div class="pillar-top">
+                        <span class="picon">⚠️</span>
+                        <h4>3. The Short Gamma Trap</h4>
+                    </div>
+                    <p>
+                        ATM options have the <strong>highest Gamma</strong>, and Gamma peaks near expiry. Shorting naked ATM options means 
+                        being "Short Gamma": if the underlying swings, Delta accelerates violently against you, causing exponential losses. 
+                        <em>"Option writers eat like a chicken but shit like an elephant"</em> if they short naked ATM. Always sell OTM outside the 1-SD band!
+                    </p>
+                    <span class="pillar-tag">Varsity Chapter 13 & 20</span>
+                </div>
+
+                <!-- Pillar 4 -->
+                <div class="pillar-card">
+                    <div class="pillar-top">
+                        <span class="picon">🛡️</span>
+                        <h4>4. The Hedge & Margin Multiplier</h4>
+                    </div>
+                    <p>
+                        Never sell naked without wings. Buying an inexpensive out-of-the-money wing caps your worst-case loss 
+                        to a strict, defined ceiling (protecting against overnight gap disasters) and <strong>reduces exchange SPAN margin 
+                        requirements by 65% to 77%</strong>, multiplying your Return on Margin (ROM) exponentially.
+                    </p>
+                    <span class="pillar-tag">Varsity Chapter 4 & 18</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Printable Execution Memo Footer -->
+        <div class="print-memo-footer print-only">
+            <div class="memo-divider"></div>
+            <div class="memo-foot-row">
+                <p>NSE Derivative Intelligence Group • Zerodha Varsity Options Selling Model v4.0</p>
+                <p>Generated: <span class="print-date">2026-10-30</span> • Confidential Trading Desk Advisory</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
