@@ -30,12 +30,12 @@
             <!-- Trading Date Selector -->
             <div class="oc-ctrl-item" style="display: flex; align-items: center; gap: 6px; background: rgba(30, 41, 59, 0.8); padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
                 <label for="pipelineDateInput" style="font-size: 11px; font-weight: 700; color: #94a3b8;">📅 SESSION:</label>
-                <input type="date" id="pipelineDateInput" class="oc-date-input" value="2026-10-30" style="background: transparent; border: none; color: #fff; font-weight: 700; cursor: pointer;">
+                <input type="date" id="pipelineDateInput" class="oc-date-input" value="{{ default_date or latest_session_date }}" style="background: transparent; border: none; color: #fff; font-weight: 700; cursor: pointer;">
             </div>
 
             <!-- Quick Date Presets -->
             <div style="display: inline-flex; align-items: center; gap: 4px;">
-                <button type="button" class="btn btn-sm date-preset-btn" data-preset="2026-10-30" style="padding: 6px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); color: #cbd5e1;" title="Latest Verified Live Session">⚡ 30 Oct (Latest)</button>
+                <button type="button" class="btn btn-sm date-preset-btn" data-preset="{{ latest_session_date }}" style="padding: 6px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); color: #cbd5e1;" title="Latest Verified Live Session">⚡ {{ latest_session_label }} (Latest)</button>
             </div>
 
             <!-- Refresh Button -->
@@ -78,7 +78,7 @@
                 <div id="pipeConfidenceBadge" style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 800; background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4);">
                     84% HIGH CONVICTION
                 </div>
-                <div style="margin-top: 10px; font-size: 11px; color: #64748b;" id="pipeSymbolDateTag">NIFTY • 2026-10-30</div>
+                <div style="margin-top: 10px; font-size: 11px; color: #64748b;" id="pipeSymbolDateTag">NIFTY • {{ default_date or latest_session_date }}</div>
             </div>
 
             <!-- Right Executive Verdict & Metrics -->
