@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Big Player Strike Intelligence & Option Selling Cockpit | NSE Derivatives Intelligence{% endblock %}
+
+{% block content %}
+<div class="strike-intelligence-page-container" id="strikeIntelPage" style="max-width: 1400px; margin: 0 auto; padding: 20px;">
+    <!-- Top Action & Date Bar -->
+    <div class="oc-page-header" style="margin-bottom: 12px;">
+        <div class="oc-header-left">
+            <div class="oc-page-title-box">
+                <span class="oc-title-icon">👑</span>
+                <div>
+                    <h1 class="oc-page-title">Big Player Strike Intelligence & Option Selling Cockpit</h1>
+                    <p class="oc-page-sub">Exact Strike Creation • Institutional Goals • Writer Panic Breakevens • Trapped Retail • High-POP Execution</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="oc-header-right">
+            <!-- Symbol Pills -->
+            <div class="oc-symbol-pills" id="siSymbolPills">
+                <button type="button" class="oc-pill-btn active" data-symbol="NIFTY">NIFTY 50</button>
+                <button type="button" class="oc-pill-btn" data-symbol="BANKNIFTY">BANK NIFTY</button>
+                <button type="button" class="oc-pill-btn" data-symbol="FINNIFTY">FIN NIFTY</button>
+            </div>
+
+            <!-- Trading Date Selector -->
+            <div class="oc-ctrl-item">
+                <label for="siDateInput">📅 SESSION:</label>
+                <input type="date" id="siDateInput" class="oc-date-input" value="2026-10-30" title="Click to change Trading Date">
+            </div>
+
+            <!-- Quick Date Presets -->
+            <div style="display: inline-flex; align-items: center; gap: 4px;">
+                <button type="button" class="btn btn-sm date-preset-btn" data-preset="2026-10-30" style="padding: 6px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); color: #cbd5e1;" title="Latest Verified Live Session">⚡ 30 Oct (Latest)</button>
+            </div>
+
+            <!-- Refresh Button -->
+            <button type="button" class="btn btn-outline btn-sm" id="btnRefreshSi" title="Reload Strike Intelligence">
+                🔄 Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Universal Cross-Page Navigation Strip -->
+    <div class="universal-nav-strip">
+        <span class="uns-label">⚡ JUMP TO VIEW:</span>
+        <a href="/pipeline" class="uns-link">
+            <span class="uns-icon">⚡</span> 5-Data Pipeline <span class="uns-badge" style="background: rgba(168, 85, 247, 0.25); color: #c084fc; border-color: rgba(168, 85, 247, 0.4);">5 DATA</span>
+        </a>
+        <a href="/strike-intelligence" class="uns-link active">
+            <span class="uns-icon">👑</span> Big Player Strikes <span class="uns-badge" style="background: rgba(239, 68, 68, 0.25); color: #f87171; border-color: rgba(239, 68, 68, 0.4);">NEW</span>
+        </a>
+        <a href="/option-chain" class="uns-link">
+            <span class="uns-icon">📊</span> Proper Option Chain (NSE Pro View)
+        </a>
+        <a href="/details-report" class="uns-link">
+            <span class="uns-icon">📑</span> Institutional Details Report
+        </a>
+        <a href="/option-selling" class="uns-link">
+            <span class="uns-icon">🛡️</span> Option Selling Advisory <span class="uns-badge">PRO</span>
+        </a>
+        <a href="/participant-oi" class="uns-link">
+            <span class="uns-icon">👥</span> Participant-Wise OI Analyzer
+        </a>
+    </div>
+
+    <!-- Market Overview Intelligence Strip -->
+    <div class="oc-metrics-strip" style="margin-bottom: 20px;">
+        <div class="oc-metric-card spot-card">
+            <span class="oc-metric-lbl">UNDERLYING SPOT</span>
+            <strong class="oc-metric-val" id="siSpotPrice">25,057.35</strong>
+            <span class="oc-metric-sub" id="siAtmStrike">ATM: 25,050</span>
+        </div>
+        <div class="oc-metric-card pcr-card">
+            <span class="oc-metric-lbl">PUT-CALL RATIO (PCR)</span>
+            <strong class="oc-metric-val" id="siPcrVal">0.68</strong>
+            <span class="oc-metric-sub" id="siPcrStance">Bearish Call Resistance</span>
+        </div>
+        <div class="oc-metric-card maxpain-card">
+            <span class="oc-metric-lbl">MAX PAIN PIN</span>
+            <strong class="oc-metric-val" id="siMaxPainVal">25,050</strong>
+            <span class="oc-metric-sub">Smart Money Decay Anchor</span>
+        </div>
+        <div class="oc-metric-card res-card">
+            <span class="oc-metric-lbl">SHORT CALL BASTION (R1)</span>
+            <strong class="oc-metric-val" id="siResStrike">25,200 CE</strong>
+            <span class="oc-metric-sub" id="siResOi">87,09,600 Open Contracts</span>
+        </div>
+        <div class="oc-metric-card sup-card">
+            <span class="oc-metric-lbl">SHORT PUT BASTION (S1)</span>
+            <strong class="oc-metric-val" id="siSupStrike">25,000 PE</strong>
+            <span class="oc-metric-sub" id="siSupOi">59,12,525 Open Contracts</span>
+        </div>
+        <div class="oc-metric-card osc-card">
+            <span class="oc-metric-lbl">INSTITUTIONAL PIN CORRIDOR</span>
+            <strong class="oc-metric-val" id="siCorridorVal">25,000 - 25,200</strong>
+            <span class="oc-metric-sub">Expected Expiry Range</span>
+        </div>
+    </div>
+
+    <!-- Dedicated Big Player Strike Creation & Option Selling Cockpit Component -->
+    <div class="big-player-strike-cockpit" id="ocBigPlayerCockpit" style="margin-top: 0;">
+        <div class="bpsc-header">
+            <div class="bpsc-title-wrap">
+                <span class="bpsc-icon">👑</span>
+                <div>
+                    <div class="bpsc-tag-row">
+                        <span class="bpsc-tag">INSTITUTIONAL STRIKE CREATION & OPTION SELLING</span>
+                        <span class="bpsc-sub-tag" id="cockpitDominantStance">BEARISH CEILING DEFENSE</span>
+                    </div>
+                    <h3 class="bpsc-title">Where Big Players Created Positions & What They Want</h3>
+                    <p class="bpsc-sub">Exact strike mapping of smart money short Call ceilings, short Put floors, writer panic breakevens, and trapped retail</p>
+                </div>
+            </div>
+            <div class="bpsc-pop-card">
+                <span class="bpop-label">RECOMMENDED STRATEGY WIN RATE</span>
+                <strong class="bpop-val" id="cockpitPopVal">88.4% POP</strong>
+                <span class="bpop-sub" id="cockpitStratType">Bear Call Credit Spread</span>
+            </div>
+        </div>
+
+        <div class="bpsc-grid">
+            <!-- Col 1: Smart Money Call Bastion (Ceiling) -->
+            <div class="bpsc-card bpsc-call-card">
+                <div class="bpsc-card-header">
+                    <span class="bcard-icon">🔴</span>
+                    <div>
+                        <h4 class="bcard-title">Smart Money Short Call Bastion (Ceiling)</h4>
+                        <span class="bcard-sub">Institutional Overhead Resistance</span>
+                    </div>
+                    <span class="bcard-strike-pill pill-call" id="cockpitCallStrike">25,200 CE (R1)</span>
+                </div>
+                <div class="bpsc-body">
+                    <div class="bpsc-stat-row">
+                        <div class="bstat-item">
+                            <span class="bstat-lbl">Call LTP & Premium</span>
+                            <strong class="bstat-val" id="cockpitCallLtp">₹36.00</strong>
+                        </div>
+                        <div class="bstat-item">
+                            <span class="bstat-lbl">Net Smart Calls</span>
+                            <strong class="bstat-val text-red" id="cockpitCallNet">-1,32,815</strong>
+                        </div>
+                        <div class="bstat-item">
+                            <span class="bstat-lbl">Retention Ratio</span>
+                            <strong class="bstat-val text-gold" id="cockpitCallRetention">42.8% (Overnight)</strong>
+                        </div>
+                    </div>
+                    <div class="bpsc-goal-box">
+                        <span class="bgoal-lbl">🎯 WHAT THEY WANT:</span>
+                        <p class="bgoal-text" id="cockpitCallWant">Defend the 25,200 ceiling. Smart money will aggressively sell into any intraday test towards 25,180 - 25,200 to capture 100% theta decay.</p>
+                    </div>
+                    <div class="bpsc-panic-box call-panic">
+                        <span class="bpanic-lbl">🚨 CALL WRITER PANIC BREAKEVEN:</span>
+                        <strong class="bpanic-val" id="cockpitCallPanic">₹25,236.0</strong>
+                        <p class="bpanic-desc">If spot sustains above this price, institutional call sellers run into loss and are forced into emergency short covering.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Col 2: Smart Money Put Bastion (Floor) -->
+            <div class="bpsc-card bpsc-put-card">
+                <div class="bpsc-card-header">
+                    <span class="bcard-icon">🟢</span>
+                    <div>
+                        <h4 class="bcard-title">Smart Money Short Put Bastion (Floor)</h4>
+                        <span class="bcard-sub">Institutional Demand Floor</span>
+                    </div>
+                    <span class="bcard-strike-pill pill-put" id="cockpitPutStrike">25,000 PE (S1)</span>
+                </div>
+                <div class="bpsc-body">
+                    <div class="bpsc-stat-row">
+                        <div class="bstat-item">
+                            <span class="bstat-lbl">Put LTP & Premium</span>
+                            <strong class="bstat-val" id="cockpitPutLtp">₹76.30</strong>
+                        </div>
+                        <div class="bstat-item">
+                            <span class="bstat-lbl">Net Smart Puts</span>
+                            <strong class="bstat-val text-green" id="cockpitPutNet">+1,24,804</strong>
+                        </div>
+                        <div class="bstat-item">
+                            <span class="bstat-lbl">Retention Ratio</span>
+                            <strong class="bstat-val text-gold" id="cockpitPutRetention">38.6% (Overnight)</strong>
+                        </div>
+                    </div>
+                    <div class="bpsc-goal-box">
+                        <span class="bgoal-lbl">🎯 WHAT THEY WANT:</span>
+                        <p class="bgoal-text" id="cockpitPutWant">Fortify primary support at 25,000. Dips towards 25,000 - 25,050 will trigger aggressive institutional absorption and short-strangle defense.</p>
+                    </div>
+                    <div class="bpsc-panic-box put-panic">
+                        <span class="bpanic-lbl">🚨 PUT WRITER PANIC BREAKEVEN:</span>
+                        <strong class="bpanic-val" id="cockpitPutPanic">₹24,923.7</strong>
+                        <p class="bpanic-desc">If spot breaks below this price, institutional put writers will panic dump futures to hedge underwater put liabilities.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Col 3: Trapped Retail & High-POP Option Selling Setup -->
+            <div class="bpsc-card bpsc-trade-card">
+                <div class="bpsc-card-header">
+                    <span class="bcard-icon">⚡</span>
+                    <div>
+                        <h4 class="bcard-title">High-Probability Option Selling Execution</h4>
+                        <span class="bcard-sub">Flawless Institutional Microstructure Setup</span>
+                    </div>
+                    <span class="bcard-strike-pill pill-gold" id="cockpitStrategyBadge">88.4% WIN RATE</span>
+                </div>
+                <div class="bpsc-body">
+                    <div class="bpsc-trap-box">
+                        <div class="btrap-header">
+                            <span class="btrap-icon">🚨</span>
+                            <strong class="btrap-title" id="cockpitTrapTitle">Retail Clients Trapped in Long Calls</strong>
+                        </div>
+                        <p class="btrap-desc" id="cockpitTrapDesc">Retail accumulated +1,32,815 long calls chasing breakouts. Smart Money sold calls to them. Spot held under 25,200 will bleed retail calls to 0.</p>
+                    </div>
+
+                    <div class="bpsc-trade-blueprint">
+                        <div class="blueprint-title" id="cockpitStratTitle">Bear Call Credit Spread (Sell 25,200 CE / Buy 25,350 CE)</div>
+                        <div class="blueprint-legs-grid" id="cockpitLegsGrid">
+                            <div class="bleg-card bleg-sell">
+                                <span class="bleg-action">SELL</span>
+                                <strong class="bleg-strike" id="cockpitLegSellStrike">25,200 CE</strong>
+                                <span class="bleg-ltp" id="cockpitLegSellLtp">₹36.00 • Primary Wall</span>
+                            </div>
+                            <div class="bleg-card bleg-buy">
+                                <span class="bleg-action">BUY (HEDGE)</span>
+                                <strong class="bleg-strike" id="cockpitLegBuyStrike">25,350 CE</strong>
+                                <span class="bleg-ltp" id="cockpitLegBuyLtp">₹8.50 • OTM Protection</span>
+                            </div>
+                        </div>
+                        <div class="blueprint-footer">
+                            <div class="bfoot-item">
+                                <span class="bfoot-lbl">Net Credit:</span>
+                                <strong class="bfoot-val text-green" id="cockpitNetCredit">+₹2,062 / lot (+27.5 pts)</strong>
+                            </div>
+                            <div class="bfoot-item">
+                                <span class="bfoot-lbl">Stop-Loss Trigger:</span>
+                                <strong class="bfoot-val text-amber" id="cockpitStopLoss">Spot > 25,236.0 (Panic Breakeven)</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Jump Action Row -->
+    <div style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+        <a href="/option-chain" class="btn btn-primary">
+            <span>📊 View Full 13-Column Option Chain</span>
+        </a>
+        <a href="/details-report" class="btn btn-outline">
+            <span>📑 Read Next-Day Institutional Details Report</span>
+        </a>
+        <a href="/option-selling" class="btn btn-outline" style="border-color: #f59e0b; color: #fbbf24;">
+            <span>🛡️ View Complete Option Greeks Advisory</span>
+        </a>
+    </div>
+    <!-- Auto-Run Loader -->
+    <script>
+        (function autoRunSi() {
+            if (typeof initStrikeIntelligencePage === 'function') {
+                initStrikeIntelligencePage();
+            } else {
+                setTimeout(autoRunSi, 30);
+            }
+        })();
+    </script>
+</div>
+{% endblock %}
