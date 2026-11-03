@@ -48,9 +48,25 @@ function formatNumber(num) {
 
 // --- Centralized Date Management across Multi-Page & SPA Navigation ---
 
+function getSystemLatestDate() {
+    const meta = document.querySelector('meta[name="latest-session-date"]');
+    if (meta && meta.content && meta.content.length === 10) return meta.content;
+    return window.LATEST_SESSION_DATE || '2026-11-02';
+}
+
+function getSystemLatestLabel() {
+    const meta = document.querySelector('meta[name="latest-session-label"]');
+    if (meta && meta.content) return meta.content;
+    return window.LATEST_SESSION_LABEL || '02 Nov';
+}
+
 function getActiveTradingDate() {
     const s = localStorage.getItem('selected_trading_date');
-    if (!s || s.startsWith('2024')) return '2026-10-30';
+    const sysLatest = getSystemLatestDate();
+    if (!s || s.startsWith('2024') || s === '2026-10-30') {
+        localStorage.setItem('selected_trading_date', sysLatest);
+        return sysLatest;
+    }
     return s;
 }
 
@@ -710,7 +726,7 @@ function openOptionChainDrawer() {
         document.body.style.overflow = 'hidden';
         
         const mainDateEl = document.getElementById('mainDateInput');
-        const activeDate = (currentData && currentData.today_date) || (mainDateEl ? mainDateEl.value : null) || localStorage.getItem('selected_trading_date') || '2026-10-30';
+        const activeDate = (currentData && currentData.today_date) || (mainDateEl ? mainDateEl.value : null) || localStorage.getItem('selected_trading_date') || getSystemLatestDate();
         fetchOptionChain(currentOcSymbol, currentOcExpiry, currentOcWindow, activeDate);
     }
 }
@@ -2601,7 +2617,7 @@ function updateHomeOcPulse(ocData) {
 function initOptionChainPage() {
     // 0. Trading Date Picker
     const ocDateInput = document.getElementById('ocMainDateInput');
-    const savedDate = localStorage.getItem('selected_trading_date') || '2026-10-30';
+    const savedDate = localStorage.getItem('selected_trading_date') || getSystemLatestDate();
     if (ocDateInput) {
         ocDateInput.value = savedDate;
         ocDateInput.addEventListener('change', () => {
@@ -2629,7 +2645,7 @@ function initOptionChainPage() {
             btn.classList.add('active');
             currentOcSymbol = btn.getAttribute('data-symbol') || 'NIFTY';
             currentOcExpiry = null;
-            const targetDate = localStorage.getItem('selected_trading_date') || '2026-10-30';
+            const targetDate = localStorage.getItem('selected_trading_date') || getSystemLatestDate();
             fetchOptionChain(currentOcSymbol, null, currentOcWindow, targetDate);
         });
     });
@@ -2639,7 +2655,7 @@ function initOptionChainPage() {
     if (expSelect) {
         expSelect.addEventListener('change', () => {
             currentOcExpiry = expSelect.value;
-            const targetDate = localStorage.getItem('selected_trading_date') || '2026-10-30';
+            const targetDate = localStorage.getItem('selected_trading_date') || getSystemLatestDate();
             fetchOptionChain(currentOcSymbol, currentOcExpiry, currentOcWindow, targetDate);
         });
     }
@@ -2649,7 +2665,7 @@ function initOptionChainPage() {
     if (winSelect) {
         winSelect.addEventListener('change', () => {
             currentOcWindow = parseInt(winSelect.value) || 15;
-            const targetDate = localStorage.getItem('selected_trading_date') || '2026-10-30';
+            const targetDate = localStorage.getItem('selected_trading_date') || getSystemLatestDate();
             fetchOptionChain(currentOcSymbol, currentOcExpiry, currentOcWindow, targetDate);
         });
     }
@@ -2658,7 +2674,7 @@ function initOptionChainPage() {
     const refreshBtn = document.getElementById('btnMainRefreshOc');
     if (refreshBtn) {
         refreshBtn.addEventListener('click', () => {
-            const targetDate = localStorage.getItem('selected_trading_date') || '2026-10-30';
+            const targetDate = localStorage.getItem('selected_trading_date') || getSystemLatestDate();
             fetchOptionChain(currentOcSymbol, currentOcExpiry, currentOcWindow, targetDate);
         });
     }
@@ -5452,12 +5468,35 @@ function bootApp() {
     // Automatic migration from 2024 reference date to 2026 live date
     try {
         const curDate = localStorage.getItem('selected_trading_date');
-        if (!curDate || curDate.startsWith('2024')) {
-            localStorage.setItem('selected_trading_date', '2026-10-30');
+        const sysLatest = getSystemLatestDate();
+        if (!curDate || curDate.startsWith('2024') || curDate === '2026-10-30') {
+            localStorage.setItem('selected_trading_date', sysLatest);
         }
     } catch(e) {}
 
     try { initYouTubeSidebar(); } catch(e) { console.warn('initYouTubeSidebar error:', e); }
+    // Dynamic latest session synchronization
+    try {
+        fetch('/api/latest-session')
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.status === 'success' && data.latest_date) {
+                    window.LATEST_SESSION_DATE = data.latest_date;
+                    window.LATEST_SESSION_LABEL = data.latest_label;
+                    document.querySelectorAll('.date-preset-btn').forEach(btn => {
+                        btn.setAttribute('data-preset', data.latest_date);
+                        btn.setAttribute('title', `Latest Verified Live Session (${data.latest_date})`);
+                        btn.innerHTML = `⚡ ${data.latest_label} (Latest)`;
+                    });
+                    const cur = localStorage.getItem('selected_trading_date');
+                    if (!cur || cur.startsWith('2024') || cur === '2026-10-30') {
+                        setActiveTradingDate(data.latest_date, true);
+                    }
+                }
+            })
+            .catch(e => console.warn('[AlphaDeriv] latest-session error:', e));
+    } catch(e) {}
+
 
     // Synchronize initial active trading date from URL (?date=YYYY-MM-DD) or localStorage
     try {
@@ -5614,3 +5653,11 @@ if (document.readyState === 'loading') {
 } else {
     bootApp();
 }
+
+
+window.addEventListener('storage', (e) => {
+    if (e.key === 'selected_trading_date' && e.newValue) {
+        console.log('[AlphaDeriv] Cross-tab date sync:', e.newValue);
+        setActiveTradingDate(e.newValue, true);
+    }
+});
