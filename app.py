@@ -63,42 +63,6 @@ if len(glob.glob(os.path.join(app.config['SAMPLE_FOLDER'], "*.pdf"))) < 5:
     create_csv_files(days, app.config['SAMPLE_FOLDER'])
     create_pdf_files(days, app.config['SAMPLE_FOLDER'])
 
-def get_latest_session_date():
-    """
-    Returns the most recent completed trading session date.
-    Checks available cached NSE files first (e.g. 2026-10-26).
-    Falls back to latest weekday.
-    """
-    cache_dir = os.path.join(os.path.dirname(__file__), "cache")
-    cached_files = glob.glob(os.path.join(cache_dir, "fao_participant_oi_*.csv"))
-    if cached_files:
-        dates = []
-        for f in cached_files:
-            m = re.search(r"fao_participant_oi_(\d{8})\.csv", os.path.basename(f))
-            if m:
-                raw = m.group(1)
-                for fmt in ['%Y%m%d', '%d%m%Y']:
-                    try:
-                        dt = datetime.strptime(raw, fmt)
-                        dates.append(dt.strftime("%Y-%m-%d"))
-                        break
-                    except ValueError:
-                        pass
-        if dates:
-            return sorted(dates)[-1]
-
-    now = datetime.now()
-    dt = now
-    if dt.weekday() == 5:
-        dt -= timedelta(days=1)
-    elif dt.weekday() == 6:
-        dt -= timedelta(days=2)
-    elif now.hour < 18 or (now.hour == 18 and now.minute < 30):
-        dt -= timedelta(days=1)
-        while dt.weekday() >= 5:
-            dt -= timedelta(days=1)
-    return dt.strftime("%Y-%m-%d")
-
 
 def get_demo_parsed_records():
     """Load the 5-day sample PDFs for instant demo."""
