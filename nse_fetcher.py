@@ -4,6 +4,7 @@ import csv
 import zipfile
 import glob
 import re
+import time
 import requests
 from datetime import datetime, timedelta
 from oi_engine import parse_csv, calculate_multi_day_oi
@@ -289,34 +290,88 @@ def compute_retention_ratio(oi_data: dict, vol_data: dict) -> dict:
 
 _LATEST_DATE_CACHE = {"date": None, "last_checked": 0}
 
+def get_expected_latest_trading_date(now=None):
+    """
+    Computes the most recent completed NSE trading session date.
+    - Monday to Friday:
+        If current IST time >= 18:30 (when NSE finishes publishing official EOD bhavcopy & OI files),
+        today is the latest session.
+        If current IST time < 18:30, the previous trading day is the latest session.
+    - Saturday: Friday is the latest session.
+    - Sunday: Friday is the latest session.
+    """
+    if now is None:
+        now = datetime.now()
+    dt = now
+    if dt.weekday() == 5:
+        dt -= timedelta(days=1)
+    elif dt.weekday() == 6:
+        dt -= timedelta(days=2)
+    elif now.hour < 18 or (now.hour == 18 and now.minute < 30):
+        dt -= timedelta(days=1)
+        while dt.weekday() >= 5:
+            dt -= timedelta(days=1)
+    return dt.date()
+
+
 def get_latest_session_date() -> str:
     """
     Dynamically returns the latest verified trading session.
-    Checks local cache and proactively queries NSE if a newer session is expected to be published.
+    Prioritizes the actual expected market session date.
+    Checks local cache and proactively queries NSE if needed.
     """
     global _LATEST_DATE_CACHE
     now_ts = time.time()
     if _LATEST_DATE_CACHE["date"] and (now_ts - _LATEST_DATE_CACHE["last_checked"]) < 60:
         return _LATEST_DATE_CACHE["date"]
 
-    avail = get_available_cached_dates()
-    latest = avail[-1] if avail else "2026-11-02"
+    expected_dt = get_expected_latest_trading_date()
+    expected_str = expected_dt.strftime("%Y-%m-%d")
 
-    now = datetime.now()
+    avail = get_available_cached_dates()
+
+    # 1. If today's expected session is already cached, return it immediately
+    if expected_str in avail:
+        _LATEST_DATE_CACHE["date"] = expected_str
+        _LATEST_DATE_CACHE["last_checked"] = now_ts
+        return expected_str
+
+    # 2. If expected session is not cached, attempt to fetch it from NSE
     try:
-        latest_dt = datetime.strptime(latest, "%Y-%m-%d")
-        curr = latest_dt + timedelta(days=1)
-        while curr.date() <= now.date():
-            if curr.weekday() < 5:  # Monday to Friday
-                # If today and before 18:30 IST, market EOD files aren't released yet
-                if curr.date() == now.date() and (now.hour < 18 or (now.hour == 18 and now.minute < 30)):
-                    break
-                success, _, _ = fetch_single_day_from_nse(curr)
-                if success:
-                    latest = curr.strftime("%Y-%m-%d")
-            curr += timedelta(days=1)
+        success, _, _ = fetch_single_day_from_nse(datetime.combine(expected_dt, datetime.min.time()))
+        if success:
+            _LATEST_DATE_CACHE["date"] = expected_str
+            _LATEST_DATE_CACHE["last_checked"] = now_ts
+            return expected_str
     except Exception:
         pass
+
+    # 3. If expected date is not available (e.g. trading holiday or network issue),
+    # check the previous trading day
+    prev_dt = expected_dt - timedelta(days=1)
+    while prev_dt.weekday() >= 5:
+        prev_dt -= timedelta(days=1)
+    prev_str = prev_dt.strftime("%Y-%m-%d")
+
+    if prev_str in avail:
+        _LATEST_DATE_CACHE["date"] = prev_str
+        _LATEST_DATE_CACHE["last_checked"] = now_ts
+        return prev_str
+
+    try:
+        success, _, _ = fetch_single_day_from_nse(datetime.combine(prev_dt, datetime.min.time()))
+        if success:
+            _LATEST_DATE_CACHE["date"] = prev_str
+            _LATEST_DATE_CACHE["last_checked"] = now_ts
+            return prev_str
+    except Exception:
+        pass
+
+    # 4. Fallback to newest available cached date
+    if avail:
+        latest = avail[-1]
+    else:
+        latest = expected_str
 
     _LATEST_DATE_CACHE["date"] = latest
     _LATEST_DATE_CACHE["last_checked"] = now_ts
