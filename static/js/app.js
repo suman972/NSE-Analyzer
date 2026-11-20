@@ -51,19 +51,19 @@ function formatNumber(num) {
 function getSystemLatestDate() {
     const meta = document.querySelector('meta[name="latest-session-date"]');
     if (meta && meta.content && meta.content.length === 10) return meta.content;
-    return window.LATEST_SESSION_DATE || '2026-11-02';
+    return window.LATEST_SESSION_DATE || '2026-11-20';
 }
 
 function getSystemLatestLabel() {
     const meta = document.querySelector('meta[name="latest-session-label"]');
     if (meta && meta.content) return meta.content;
-    return window.LATEST_SESSION_LABEL || '02 Nov';
+    return window.LATEST_SESSION_LABEL || '20 Nov';
 }
 
 function getActiveTradingDate() {
     const s = localStorage.getItem('selected_trading_date');
     const sysLatest = getSystemLatestDate();
-    if (!s || s.startsWith('2024') || s === '2026-10-30') {
+    if (!s || s.startsWith('2024') || s === '2026-10-30' || s < sysLatest) {
         localStorage.setItem('selected_trading_date', sysLatest);
         return sysLatest;
     }
@@ -5492,7 +5492,7 @@ function bootApp() {
                         btn.innerHTML = `⚡ ${data.latest_label} (Latest)`;
                     });
                     const cur = localStorage.getItem('selected_trading_date');
-                    if (!cur || cur.startsWith('2024') || cur === '2026-10-30') {
+                    if (!cur || cur.startsWith('2024') || cur === '2026-10-30' || cur < data.latest_date) {
                         setActiveTradingDate(data.latest_date, true);
                     }
                 }
